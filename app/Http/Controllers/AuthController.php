@@ -111,7 +111,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
-            $this->authService->logout($request->user());
+            $this->authService->logout(auth()->user());
 
             return response()->json([
                 'success' => true,
@@ -132,7 +132,7 @@ class AuthController extends Controller
     public function profile(Request $request)
     {
         try {
-            $user = $this->authService->profile($request->user());
+            $user = $this->authService->profile(auth()->user());
 
             return response()->json([
                 'success' => true,
@@ -171,7 +171,7 @@ class AuthController extends Controller
                 ], 422);
             }
 
-            $user = $this->authService->updateProfile($request->user(), $request->all());
+            $user = $this->authService->updateProfile(auth()->user(), $request->all());
 
             return response()->json([
                 'success' => true,
@@ -193,7 +193,7 @@ class AuthController extends Controller
     public function refreshToken(Request $request)
     {
         try {
-            $result = $this->authService->refreshToken($request->user());
+            $result = $this->authService->refreshToken(auth()->user());
 
             return response()->json([
                 'success' => true,

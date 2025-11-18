@@ -11,7 +11,7 @@ use Carbon\Carbon;
 
 class AuthService
 {
-    public function register(array $data): array
+    public function register($data)
     {
         $user = User::create([
             'name' => $data['name'],
@@ -34,7 +34,7 @@ class AuthService
         ];
     }
 
-    public function login(string $nationalId, string $password, string $type): array
+    public function login($nationalId, $password, $type)
     {
         $user = User::where('national_id', $nationalId)->where('type', $type)->first();
 
@@ -57,23 +57,23 @@ class AuthService
         ];
     }
 
-    public function logout(User $user): void
+    public function logout(User $user)
     {
         $user->currentAccessToken()->delete();
     }
 
-    public function profile(User $user): User
+    public function profile(User $user)
     {
         return $user;
     }
 
-    public function updateProfile(User $user, array $data): User
+    public function updateProfile(User $user, $data)
     {
         $user->update($data);
         return $user->fresh();
     }
 
-    public function refreshToken(User $user): array
+    public function refreshToken(User $user)
     {
         // Revoke current token
         $user->currentAccessToken()->delete();
@@ -87,7 +87,7 @@ class AuthService
         ];
     }
 
-    public function forgetPassword(string $nationalId): void
+    public function forgetPassword($nationalId)
     {
         $user = User::where('national_id', $nationalId)->first();
 
@@ -126,7 +126,7 @@ class AuthService
     /**
      * Reset password with OTP
      */
-    public function resetPassword(string $nationalId, string $otp, string $newPassword): void
+    public function resetPassword($nationalId, $otp, $newPassword)
     {
         $otpRecord = PasswordResetOtp::where('national_id', $nationalId)
             ->where('otp', $otp)
@@ -160,7 +160,7 @@ class AuthService
         });
     }
 
-    public function verifyOtp(string $nationalId, string $otp): array
+    public function verifyOtp($nationalId, $otp)
     {
         $otpRecord = PasswordResetOtp::where('national_id', $nationalId)
             ->where('otp', $otp)

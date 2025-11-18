@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -16,4 +17,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
+});
+
+// Admin protected routes
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::apiResource('users', UserController::class);
+    Route::get('/blocklist', [UserController::class, 'blocklist']);
+    Route::post('/bulkActions', [UserController::class, 'bulkAction']);
 });
