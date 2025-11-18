@@ -1,0 +1,451 @@
+{
+	"info": {
+		"_postman_id": "auction-auth-api",
+		"name": "Auction Authentication API",
+		"description": "Collection for testing Auction Authentication API endpoints with Laravel Sanctum",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    try {",
+									"        var jsonData = pm.response.json();",
+									"        var token = null;",
+									"        var user = null;",
+									"        ",
+									"        // Try nested structure (data.token)",
+									"        if (jsonData.data && jsonData.data.token) {",
+									"            token = jsonData.data.token;",
+									"            user = jsonData.data.user;",
+									"        }",
+									"        // Try root structure (token)",
+									"        else if (jsonData.token) {",
+									"            token = jsonData.token;",
+									"            user = jsonData.user;",
+									"        }",
+									"        ",
+									"        if (token) {",
+									"            pm.environment.set(\"admin_token\", token);",
+									"            pm.environment.set(\"auth_token\", token);",
+									"            if (user && user.id) {",
+									"                pm.environment.set(\"user_id\", user.id);",
+									"            }",
+									"        }",
+									"    } catch (e) {",
+									"        console.log(\"Error parsing response:\", e);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"national_id\": \"1234567890\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+1234567890\",\n    \"address\": \"123 Main Street, City, Country\",\n    \"summary\": \"This is a test user account\",\n    \"link\": \"https://example.com/johndoe\",\n    \"password\": \"password123\",\n    \"type\": \"user\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"register"
+							]
+						},
+						"description": "Register a new user account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    try {",
+									"        var jsonData = pm.response.json();",
+									"        var token = null;",
+									"        var user = null;",
+									"        ",
+									"        // Try nested structure (data.token)",
+									"        if (jsonData.data && jsonData.data.token) {",
+									"            token = jsonData.data.token;",
+									"            user = jsonData.data.user;",
+									"        }",
+									"        // Try root structure (token)",
+									"        else if (jsonData.token) {",
+									"            token = jsonData.token;",
+									"            user = jsonData.user;",
+									"        }",
+									"        ",
+									"        if (token) {",
+									"            pm.environment.set(\"admin_token\", token);",
+									"            pm.environment.set(\"auth_token\", token);",
+									"            if (user && user.id) {",
+									"                pm.environment.set(\"user_id\", user.id);",
+									"            }",
+									"            if (user && user.national_id) {",
+									"                pm.environment.set(\"national_id\", user.national_id);",
+									"            }",
+									"        }",
+									"    } catch (e) {",
+									"        console.log(\"Error parsing response:\", e);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"national_id\": \"1000000001\",\n    \"password\": \"123456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "Login with national_id and password"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"logout"
+							]
+						},
+						"description": "Logout the authenticated user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"profile"
+							]
+						},
+						"description": "Get the authenticated user's profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe Updated\",\n    \"email\": \"john.updated@example.com\",\n    \"phone\": \"+1234567891\",\n    \"address\": \"456 Updated Street, City, Country\",\n    \"summary\": \"Updated profile summary\",\n    \"link\": \"https://example.com/johndoeupdated\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"profile"
+							]
+						},
+						"description": "Update the authenticated user's profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    try {",
+									"        var jsonData = pm.response.json();",
+									"        var token = null;",
+									"        ",
+									"        // Try nested structure (data.token)",
+									"        if (jsonData.data && jsonData.data.token) {",
+									"            token = jsonData.data.token;",
+									"        }",
+									"        // Try root structure (token)",
+									"        else if (jsonData.token) {",
+									"            token = jsonData.token;",
+									"        }",
+									"        ",
+									"        if (token) {",
+									"            pm.environment.set(\"admin_token\", token);",
+									"            pm.environment.set(\"auth_token\", token);",
+									"        }",
+									"    } catch (e) {",
+									"        console.log(\"Error parsing response:\", e);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/refresh-token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"refresh-token"
+							]
+						},
+						"description": "Refresh the authentication token"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints"
+		},
+		{
+			"name": "Password Reset",
+			"item": [
+				{
+					"name": "Forget Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"national_id\": \"1000000001\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/forget-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"forget-password"
+							]
+						},
+						"description": "Request password reset OTP. OTP will be sent to user's email."
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"national_id\": \"1000000001\",\n    \"otp\": \"123456\",\n    \"password\": \"newpassword123\",\n    \"password_confirmation\": \"newpassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/reset-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reset-password"
+							]
+						},
+						"description": "Reset password using OTP received via email"
+					},
+					"response": []
+				}
+			],
+			"description": "Password reset endpoints"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		}
+	]
+}
+
