@@ -1,0 +1,790 @@
+{
+	"info": {
+		"_postman_id": "categories-screens-crud-001",
+		"name": "Auction - Categories & Screens CRUD",
+		"description": "Postman collection for testing Categories and Screens CRUD operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.token) {",
+									"        pm.environment.set('auth_token', response.data.token);",
+									"        pm.environment.set('user_id', response.data.user.id);",
+									"        console.log('Auth token saved:', response.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"national_id\": \"{{admin_national_id}}\",\n    \"password\": \"{{admin_password}}\",\n    \"type\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "Login as admin to get authentication token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Get All Categories (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"// Save first category ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('category_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/categories?search={{search_term}}&type={{category_type}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"categories"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "{{search_term}}",
+									"description": "Search by category name (optional)",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "{{category_type}}",
+									"description": "Filter by type: terms or contracts (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all categories with optional search and type filter. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Category by ID (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has category data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('name');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/categories/{{category_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"categories",
+								"{{category_id}}"
+							]
+						},
+						"description": "Get a specific category by ID. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Category (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has category data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('name');",
+									"});",
+									"",
+									"// Save category ID for later use",
+									"const response = pm.response.json();",
+									"if (response.success && response.data) {",
+									"    pm.environment.set('category_id', response.data.id);",
+									"    console.log('Category ID saved:', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Test Category",
+									"type": "text"
+								},
+								{
+									"key": "title",
+									"value": "Test Category Title",
+									"type": "text"
+								},
+								{
+									"key": "content",
+									"value": "This is a test category content with detailed description.",
+									"type": "text"
+								},
+								{
+									"key": "type",
+									"value": "terms",
+									"type": "text",
+									"description": "Must be 'terms' or 'contracts'"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": [],
+									"description": "Image file (jpeg, png, jpg, gif, webp, max 2MB)"
+								},
+								{
+									"key": "screens",
+									"value": "[\n    {\n        \"title\": \"Screen 1\",\n        \"description\": \"Description for Screen 1\"\n    },\n    {\n        \"title\": \"Screen 2\",\n        \"description\": \"Description for Screen 2\"\n    }\n]",
+									"type": "text",
+									"description": "JSON array of screens with title and description"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"categories"
+							]
+						},
+						"description": "Create a new category with image and screens. Requires admin authentication.\n\n**Required fields:**\n- name: string\n- type: 'terms' or 'contracts'\n- image: image file\n\n**Optional fields:**\n- title: string\n- content: string\n- screens: JSON array of objects with 'title' and 'description'"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Category (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Updated Category Name",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "title",
+									"value": "Updated Category Title",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "content",
+									"value": "Updated content for the category.",
+									"type": "text",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "contracts",
+									"type": "text",
+									"disabled": true,
+									"description": "Must be 'terms' or 'contracts'"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": [],
+									"disabled": true,
+									"description": "New image file (optional)"
+								},
+								{
+									"key": "screens",
+									"value": "[\n    {\n        \"title\": \"Updated Screen 1\",\n        \"description\": \"Updated description\"\n    }\n]",
+									"type": "text",
+									"disabled": true,
+									"description": "JSON array of screens (optional)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/categories/{{category_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"categories",
+								"{{category_id}}"
+							]
+						},
+						"description": "Update an existing category. All fields are optional. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Category (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/categories/{{category_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"categories",
+								"{{category_id}}"
+							]
+						},
+						"description": "Delete a category. This will also delete all associated screens (cascade delete). Requires admin authentication."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Screens",
+			"item": [
+				{
+					"name": "Get All Screens (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"// Save first screen ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('screen_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/screens?search={{search_term}}&category_id={{category_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"screens"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "{{search_term}}",
+									"description": "Search by title or description (optional)",
+									"disabled": true
+								},
+								{
+									"key": "category_id",
+									"value": "{{category_id}}",
+									"description": "Filter by category ID (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all screens with optional search and category filter. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Screen by ID (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has screen data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('title');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/screens/{{screen_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"screens",
+								"{{screen_id}}"
+							]
+						},
+						"description": "Get a specific screen by ID. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Screen (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has screen data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('title');",
+									"});",
+									"",
+									"// Save screen ID for later use",
+									"const response = pm.response.json();",
+									"if (response.success && response.data) {",
+									"    pm.environment.set('screen_id', response.data.id);",
+									"    console.log('Screen ID saved:', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"New Screen Title\",\n    \"description\": \"This is a description for the new screen\",\n    \"category_id\": {{category_id}}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/screens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"screens"
+							]
+						},
+						"description": "Create a new screen. Requires admin authentication.\n\n**Required fields:**\n- title: string\n- category_id: integer (must exist in categories table)\n\n**Optional fields:**\n- description: string"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Screen (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Screen Title\",\n    \"description\": \"Updated description for the screen\",\n    \"category_id\": {{category_id}}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/screens/{{screen_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"screens",
+								"{{screen_id}}"
+							]
+						},
+						"description": "Update an existing screen. All fields are optional. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Screen (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/screens/{{screen_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"screens",
+								"{{screen_id}}"
+							]
+						},
+						"description": "Delete a screen. Requires admin authentication."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "category_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "screen_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_national_id",
+			"value": "1000000001",
+			"type": "string"
+		},
+		{
+			"key": "admin_password",
+			"value": "123456",
+			"type": "string"
+		},
+		{
+			"key": "search_term",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "category_type",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
