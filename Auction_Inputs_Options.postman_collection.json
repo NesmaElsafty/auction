@@ -1,0 +1,746 @@
+{
+	"info": {
+		"_postman_id": "inputs-options-crud-001",
+		"name": "Auction - Inputs & Options CRUD",
+		"description": "Postman collection for testing Inputs and Options CRUD operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.token) {",
+									"        pm.environment.set('auth_token', response.data.token);",
+									"        pm.environment.set('user_id', response.data.user.id);",
+									"        console.log('Auth token saved:', response.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"national_id\": \"{{admin_national_id}}\",\n    \"password\": \"{{admin_password}}\",\n    \"type\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "Login as admin to get authentication token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Inputs",
+			"item": [
+				{
+					"name": "Get All Inputs (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"// Save first input ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('input_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/inputs?search={{search_term}}&screen_id={{screen_id}}&type={{input_type}}&is_required={{is_required}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"inputs"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "{{search_term}}",
+									"description": "Search by name, label, or placeholder (optional)",
+									"disabled": true
+								},
+								{
+									"key": "screen_id",
+									"value": "{{screen_id}}",
+									"description": "Filter by screen ID (optional)",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "{{input_type}}",
+									"description": "Filter by input type (optional)",
+									"disabled": true
+								},
+								{
+									"key": "is_required",
+									"value": "{{is_required}}",
+									"description": "Filter by required status: true or false (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all inputs with optional filters. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Input by ID (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has input data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('name');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/inputs/{{input_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"inputs",
+								"{{input_id}}"
+							]
+						},
+						"description": "Get a specific input by ID. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Input (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has input data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('name');",
+									"});",
+									"",
+									"// Save input ID for later use",
+									"const response = pm.response.json();",
+									"if (response.success && response.data) {",
+									"    pm.environment.set('input_id', response.data.id);",
+									"    console.log('Input ID saved:', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"screen_id\": {{screen_id}},\n    \"name\": \"email\",\n    \"type\": \"email\",\n    \"placeholder\": \"أدخل البريد الإلكتروني\",\n    \"label\": \"البريد الإلكتروني\",\n    \"is_required\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/inputs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"inputs"
+							]
+						},
+						"description": "Create a new input. Requires admin authentication.\n\n**Required fields:**\n- screen_id: integer (must exist in screens table)\n- name: string\n- type: one of (text, number, email, password, date, time, datetime, checkbox, radio, select, textarea, file, image, video, audio)\n\n**Optional fields:**\n- placeholder: string\n- label: string\n- is_required: boolean (default: false)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Input (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"updated_email\",\n    \"label\": \"البريد الإلكتروني المحدث\",\n    \"is_required\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/inputs/{{input_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"inputs",
+								"{{input_id}}"
+							]
+						},
+						"description": "Update an existing input. All fields are optional. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Input (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/inputs/{{input_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"inputs",
+								"{{input_id}}"
+							]
+						},
+						"description": "Delete an input. This will also delete all associated options (cascade delete). Requires admin authentication."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Options",
+			"item": [
+				{
+					"name": "Get All Options (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"// Save first option ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('option_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/options?search={{search_term}}&input_id={{input_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"options"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "{{search_term}}",
+									"description": "Search by value or label (optional)",
+									"disabled": true
+								},
+								{
+									"key": "input_id",
+									"value": "{{input_id}}",
+									"description": "Filter by input ID (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all options with optional filters. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Option by ID (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has option data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('value');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/options/{{option_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"options",
+								"{{option_id}}"
+							]
+						},
+						"description": "Get a specific option by ID. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Option (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has option data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('value');",
+									"});",
+									"",
+									"// Save option ID for later use",
+									"const response = pm.response.json();",
+									"if (response.success && response.data) {",
+									"    pm.environment.set('option_id', response.data.id);",
+									"    console.log('Option ID saved:', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"input_id\": {{input_id}},\n    \"value\": \"riyadh\",\n    \"label\": \"الرياض\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/options",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"options"
+							]
+						},
+						"description": "Create a new option. Requires admin authentication.\n\n**Required fields:**\n- input_id: integer (must exist in inputs table)\n- value: string\n- label: string"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Option (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"value\": \"updated_riyadh\",\n    \"label\": \"الرياض المحدثة\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/options/{{option_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"options",
+								"{{option_id}}"
+							]
+						},
+						"description": "Update an existing option. All fields are optional. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Option (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/options/{{option_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"options",
+								"{{option_id}}"
+							]
+						},
+						"description": "Delete an option. Requires admin authentication."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "screen_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "input_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "option_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_national_id",
+			"value": "1000000001",
+			"type": "string"
+		},
+		{
+			"key": "admin_password",
+			"value": "123456",
+			"type": "string"
+		},
+		{
+			"key": "search_term",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "input_type",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "is_required",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+

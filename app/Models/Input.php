@@ -5,19 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Screen extends Model
+class Input extends Model
 {
     use HasFactory;
-
+    
     protected $guarded = [];
-
-    public function category()
+    public function screen()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Screen::class);
     }
 
-    public function inputs()
+    public function options()
     {
-        return $this->hasMany(Input::class);
+        return $this->hasMany(Option::class);
     }
 }

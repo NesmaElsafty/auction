@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\InputController;
+use App\Http\Controllers\OptionController;
 use App\Http\Controllers\ScreenController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +21,12 @@ Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
 Route::get('/screens', [ScreenController::class, 'index']);
 Route::get('/screens/{id}', [ScreenController::class, 'show']);
+
+Route::get('/inputs', [InputController::class, 'index']);
+Route::get('/inputs/{id}', [InputController::class, 'show']);
+
+Route::get('/options', [OptionController::class, 'index']);
+Route::get('/options/{id}', [OptionController::class, 'show']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -43,4 +51,14 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/screens', [ScreenController::class, 'store']);
     Route::put('/screens/{id}', [ScreenController::class, 'update']);
     Route::delete('/screens/{id}', [ScreenController::class, 'destroy']);
+    
+    // Admin routes for inputs (store, update, destroy)
+    Route::post('/inputs', [InputController::class, 'store']);
+    Route::put('/inputs/{id}', [InputController::class, 'update']);
+    Route::delete('/inputs/{id}', [InputController::class, 'destroy']);
+    
+    // Admin routes for options (store, update, destroy)
+    Route::post('/options', [OptionController::class, 'store']);
+    Route::put('/options/{id}', [OptionController::class, 'update']);
+    Route::delete('/options/{id}', [OptionController::class, 'destroy']);
 });

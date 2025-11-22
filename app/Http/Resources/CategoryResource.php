@@ -15,6 +15,7 @@ class CategoryResource extends JsonResource
     public function toArray(Request $request): array
     {
         // imaege default if not found
+        // dd($this->screens);
         $image = $this->getFirstMediaUrl('images') ? str_replace('public/', '', $this->getFirstMediaUrl('images')) : 'https://placehold.co/600x400?text=No+Image&font=roboto';
         return [
             'id' => $this->id,

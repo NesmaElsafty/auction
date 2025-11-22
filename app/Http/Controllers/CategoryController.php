@@ -87,7 +87,7 @@ class CategoryController extends Controller
     public function show($id)
     {
         try {
-            $category = $this->categoryService->show($id);
+            $category = Category::with('screens', 'screens.inputs', 'screens.inputs.options')->find($id);
             return response()->json([
                 'success' => true,
                 'message' => 'Category retrieved successfully',

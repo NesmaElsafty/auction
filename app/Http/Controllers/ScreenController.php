@@ -6,7 +6,7 @@ use App\Helpers\PaginationHelper;
 use App\Http\Resources\ScreenResource;
 use App\Services\ScreenService;
 use Illuminate\Http\Request;
-
+use App\Models\Screen;
 class ScreenController extends Controller
 {
     protected ScreenService $screenService;
@@ -64,7 +64,8 @@ class ScreenController extends Controller
     public function show($id)
     {
         try {
-            $screen = $this->screenService->show($id);
+
+            $screen = Screen::with('category', 'inputs', 'inputs.options')->find($id);
             
             return response()->json([
                 'success' => true,
