@@ -2,8 +2,10 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CityController;
 use App\Http\Controllers\InputController;
 use App\Http\Controllers\OptionController;
+use App\Http\Controllers\RegionController;
 use App\Http\Controllers\ScreenController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +29,12 @@ Route::get('/inputs/{id}', [InputController::class, 'show']);
 
 Route::get('/options', [OptionController::class, 'index']);
 Route::get('/options/{id}', [OptionController::class, 'show']);
+
+Route::get('/cities', [CityController::class, 'index']);
+Route::get('/cities/{id}', [CityController::class, 'show']);
+
+Route::get('/regions', [RegionController::class, 'index']);
+Route::get('/regions/{id}', [RegionController::class, 'show']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -61,4 +69,14 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/options', [OptionController::class, 'store']);
     Route::put('/options/{id}', [OptionController::class, 'update']);
     Route::delete('/options/{id}', [OptionController::class, 'destroy']);
+    
+    // Admin routes for cities (store, update, destroy)
+    Route::post('/cities', [CityController::class, 'store']);
+    Route::put('/cities/{id}', [CityController::class, 'update']);
+    Route::delete('/cities/{id}', [CityController::class, 'destroy']);
+    
+    // Admin routes for regions (store, update, destroy)
+    Route::post('/regions', [RegionController::class, 'store']);
+    Route::put('/regions/{id}', [RegionController::class, 'update']);
+    Route::delete('/regions/{id}', [RegionController::class, 'destroy']);
 });

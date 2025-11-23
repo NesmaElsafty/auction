@@ -1,0 +1,730 @@
+{
+	"info": {
+		"_postman_id": "cities-regions-crud-001",
+		"name": "Auction - Cities & Regions CRUD",
+		"description": "Postman collection for testing Cities and Regions CRUD operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.token) {",
+									"        pm.environment.set('auth_token', response.data.token);",
+									"        pm.environment.set('user_id', response.data.user.id);",
+									"        console.log('Auth token saved:', response.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"national_id\": \"{{admin_national_id}}\",\n    \"password\": \"{{admin_password}}\",\n    \"type\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "Login as admin to get authentication token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cities",
+			"item": [
+				{
+					"name": "Get All Cities (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"// Save first city ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('city_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cities?search={{search_term}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cities"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "{{search_term}}",
+									"description": "Search by city name (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all cities with optional search filter. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get City by ID (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has city data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('name');",
+									"});",
+									"",
+									"// Save city ID for later use",
+									"const response = pm.response.json();",
+									"if (response.success && response.data) {",
+									"    pm.environment.set('city_id', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cities/{{city_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cities",
+								"{{city_id}}"
+							]
+						},
+						"description": "Get a specific city by ID with its regions. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Create City (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has city data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('name');",
+									"});",
+									"",
+									"// Save city ID for later use",
+									"const response = pm.response.json();",
+									"if (response.success && response.data) {",
+									"    pm.environment.set('city_id', response.data.id);",
+									"    console.log('City ID saved:', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"الرياض\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/cities",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cities"
+							]
+						},
+						"description": "Create a new city. Requires admin authentication.\n\n**Required fields:**\n- name: string (city name)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update City (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"الرياض المحدثة\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/cities/{{city_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cities",
+								"{{city_id}}"
+							]
+						},
+						"description": "Update an existing city. All fields are optional. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete City (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cities/{{city_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cities",
+								"{{city_id}}"
+							]
+						},
+						"description": "Delete a city. This will also delete all associated regions (cascade delete). Requires admin authentication."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Regions",
+			"item": [
+				{
+					"name": "Get All Regions (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"// Save first region ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('region_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/regions?search={{search_term}}&city_id={{city_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"regions"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "{{search_term}}",
+									"description": "Search by region name (optional)",
+									"disabled": true
+								},
+								{
+									"key": "city_id",
+									"value": "{{city_id}}",
+									"description": "Filter by city ID (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all regions with optional search and city filter. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Region by ID (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has region data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('name');",
+									"    pm.expect(response.data).to.have.property('city_id');",
+									"});",
+									"",
+									"// Save region and city IDs for later use",
+									"const response = pm.response.json();",
+									"if (response.success && response.data) {",
+									"    pm.environment.set('region_id', response.data.id);",
+									"    if (response.data.city_id) {",
+									"        pm.environment.set('city_id', response.data.city_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/regions/{{region_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"regions",
+								"{{region_id}}"
+							]
+						},
+						"description": "Get a specific region by ID with its city. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Region (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has region data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('name');",
+									"    pm.expect(response.data).to.have.property('city_id');",
+									"});",
+									"",
+									"// Save region ID for later use",
+									"const response = pm.response.json();",
+									"if (response.success && response.data) {",
+									"    pm.environment.set('region_id', response.data.id);",
+									"    console.log('Region ID saved:', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"العليا\",\n    \"city_id\": {{city_id}}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/regions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"regions"
+							]
+						},
+						"description": "Create a new region. Requires admin authentication.\n\n**Required fields:**\n- name: string (region name)\n- city_id: integer (must exist in cities table)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Region (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"العليا المحدثة\",\n    \"city_id\": {{city_id}}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/regions/{{region_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"regions",
+								"{{region_id}}"
+							]
+						},
+						"description": "Update an existing region. All fields are optional. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Region (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/regions/{{region_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"regions",
+								"{{region_id}}"
+							]
+						},
+						"description": "Delete a region. Requires admin authentication."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "city_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "region_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_national_id",
+			"value": "1000000001",
+			"type": "string"
+		},
+		{
+			"key": "admin_password",
+			"value": "123456",
+			"type": "string"
+		},
+		{
+			"key": "search_term",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
