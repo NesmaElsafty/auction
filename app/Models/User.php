@@ -75,4 +75,9 @@ class User extends Authenticatable implements HasMedia
             ->height(300)
             ->performOnCollections('avatar');
     }
+
+    public function agencies()
+    {
+        return $this->hasMany(Agency::class);
+    }
 }

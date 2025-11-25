@@ -1,0 +1,574 @@
+{
+	"info": {
+		"_postman_id": "agencies-crud-001",
+		"name": "Auction - Agencies CRUD",
+		"description": "Postman collection for testing Agencies CRUD operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (User)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.token) {",
+									"        pm.environment.set('auth_token', response.data.token);",
+									"        pm.environment.set('user_id', response.data.user.id);",
+									"        console.log('Auth token saved:', response.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"national_id\": \"{{user_national_id}}\",\n    \"password\": \"{{user_password}}\",\n    \"type\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Login as user to get authentication token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Agencies",
+			"item": [
+				{
+					"name": "Get All Agencies (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"// Save first agency ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('agency_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/agencies?page=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agencies"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all agencies with pagination. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Agency by ID (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has agency data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('name');",
+									"});",
+									"",
+									"// Save agency ID for later use",
+									"const response = pm.response.json();",
+									"if (response.success && response.data) {",
+									"    pm.environment.set('agency_id', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/agencies/{{agency_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"agencies",
+								"{{agency_id}}"
+							]
+						},
+						"description": "Get a specific agency by ID with its user. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Protected Routes",
+					"auth": {
+						"type": "bearer",
+						"bearer": [
+							{
+								"key": "token",
+								"value": "{{auth_token}}",
+								"type": "string"
+							}
+						]
+					},
+					"item": [
+						{
+							"name": "Create Agency (User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 201', function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"pm.test('Response has success true', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.success).to.be.true;",
+											"});",
+											"",
+											"pm.test('Response has agency data', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.data).to.have.property('id');",
+											"    pm.expect(response.data).to.have.property('name');",
+											"});",
+											"",
+											"// Save agency ID for later use",
+											"const response = pm.response.json();",
+											"if (response.success && response.data) {",
+											"    pm.environment.set('agency_id', response.data.id);",
+											"    console.log('Agency ID saved:', response.data.id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "user_id",
+											"value": "{{user_id}}",
+											"type": "text"
+										},
+										{
+											"key": "name",
+											"value": "Test Agency",
+											"type": "text"
+										},
+										{
+											"key": "number",
+											"value": "AG001",
+											"type": "text"
+										},
+										{
+											"key": "date",
+											"value": "2024-01-01",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "address",
+											"value": "123 Main Street",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "bank_name",
+											"value": "Test Bank",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "bank_account_name",
+											"value": "Test Account",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "bank_account_number",
+											"value": "123456789",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "bank_address",
+											"value": "Bank Address",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "IBAN",
+											"value": "GB82WEST12345698765432",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "SWIFT",
+											"value": "SWIFT123",
+											"type": "text",
+											"disabled": true
+										},
+										{
+											"key": "files",
+											"type": "file",
+											"src": [],
+											"disabled": true,
+											"description": "Files to upload (optional, array of files)"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/agencies",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"agencies"
+									]
+								},
+								"description": "Create a new agency. Requires user authentication.\n\n**Required fields:**\n- user_id: integer (must exist in users table)\n- name: string (unique)\n- number: string (unique)\n\n**Optional fields:**\n- date: date\n- address: string\n- bank_name: string\n- bank_account_name: string\n- bank_account_number: string\n- bank_address: string\n- IBAN: string\n- SWIFT: string\n- files: array of files"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Agency (User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response has success true', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.success).to.be.true;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"Updated Agency Name\",\n    \"number\": \"AG002\",\n    \"date\": \"2024-01-15\",\n    \"address\": \"456 Updated Street\",\n    \"bank_name\": \"Updated Bank\",\n    \"bank_account_name\": \"Updated Account\",\n    \"bank_account_number\": \"987654321\",\n    \"bank_address\": \"Updated Bank Address\",\n    \"IBAN\": \"GB82WEST98765432109876\",\n    \"SWIFT\": \"SWIFT456\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/agencies/{{agency_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"agencies",
+										"{{agency_id}}"
+									]
+								},
+								"description": "Update an existing agency. All fields are optional. Requires user authentication."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Agency (User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response has success true', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.success).to.be.true;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/agencies/{{agency_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"agencies",
+										"{{agency_id}}"
+									]
+								},
+								"description": "Delete an agency. Requires user authentication."
+							},
+							"response": []
+						},
+						{
+							"name": "Add Files to Agency (User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response has success true', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.success).to.be.true;",
+											"});",
+											"",
+											"// Save file IDs if available",
+											"const response = pm.response.json();",
+											"if (response.success && response.data && response.data.files) {",
+											"    const files = response.data.files;",
+											"    if (files.length > 0) {",
+											"        pm.environment.set('file_id', files[0].id);",
+											"        console.log('File ID saved:', files[0].id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "agency_id",
+											"value": "{{agency_id}}",
+											"type": "text"
+										},
+										{
+											"key": "files",
+											"type": "file",
+											"src": [],
+											"description": "Files to add (required, array of files)"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/agencies/addFiles",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"agencies",
+										"addFiles"
+									]
+								},
+								"description": "Add files to an agency. Requires user authentication.\n\n**Required fields:**\n- agency_id: integer (must exist in agencies table)\n- files: array of files"
+							},
+							"response": []
+						},
+						{
+							"name": "Remove File from Agency (User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response has success true', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.success).to.be.true;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"file_id\": {{file_id}}\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/agencies/removeFiles",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"agencies",
+										"removeFiles"
+									]
+								},
+								"description": "Remove a file from an agency. Requires user authentication.\n\n**Required fields:**\n- file_id: integer (must exist in media table)"
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "agency_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "file_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_national_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_password",
+			"value": "123456",
+			"type": "string"
+		}
+	]
+}

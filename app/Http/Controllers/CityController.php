@@ -6,6 +6,7 @@ use App\Http\Resources\CityResource;
 use App\Services\CityService;
 use Illuminate\Http\Request;
 use App\Models\City;
+use App\Models\Region;
 
 class CityController extends Controller
 {
@@ -45,15 +46,19 @@ class CityController extends Controller
                 'regions.*.name' => 'required|string|max:255',
             ]);
 
+
             $city = $this->cityService->store($request->all());
 
             if ($request->has('regions')) {
+                
                 foreach ($request->regions as $region) {
-                    $city->regions()->create([
+                    Region::create([
+                        'city_id' => $city->id,
                         'name' => $region['name'],
                     ]);
                 }
             }
+            $city->load('regions');
             return response()->json([
                 'success' => true,
                 'message' => 'City created successfully',

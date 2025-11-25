@@ -71,6 +71,13 @@ class UserService
             'type' => $data['type'],
             'is_active' => $data['is_active'] ?? true,
             'password' => Hash::make($data['password']),
+            // Bank data
+            'bank_name' => $data['bank_name'] ?? null,
+            'bank_account_name' => $data['bank_account_name'] ?? null,
+            'bank_account_number' => $data['bank_account_number'] ?? null,
+            'bank_address' => $data['bank_address'] ?? null,
+            'IBAN' => $data['IBAN'] ?? null,
+            'SWIFT' => $data['SWIFT'] ?? null,
         ]);
         return $user;
     }
@@ -249,9 +256,15 @@ class UserService
         return $media->getFullUrl();
     }
 
-    public function blocklist()
+    public function blocklist($data)
     {
         $users = User::withTrashed()->where('type', 'user')->whereNotNull('deleted_at');
+        if(isset($data['search']) && $data['search']){
+            $users = $users->where('name', 'like', "%{$data['search']}%")
+                ->orWhere('national_id', 'like', "%{$data['search']}%")
+                ->orWhere('email', 'like', "%{$data['search']}%")
+                ->orWhere('phone', 'like', "%{$data['search']}%");
+        }
         return $users;
     }
 }

@@ -11,28 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('agencies', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
-            $table->string('national_id')->unique();
-            $table->string('email')->nullable();
-            $table->string('phone')->nullable();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('name')->nullable() ->unique();
+            $table->string('number')->nullable() ->unique();
+            $table->string('date')->nullable();
             $table->string('address')->nullable();
-            $table->text('summary')->nullable();
-            $table->string('link')->nullable();
-            $table->string('password')->nullable();
-            $table->enum('type', ['user', 'admin'])->default('user');
             $table->boolean('is_active')->default(true);
-
+            // bank data
             $table->string('bank_name')->nullable();
             $table->string('bank_account_name')->nullable();
             $table->string('bank_account_number')->nullable();
             $table->string('bank_address')->nullable();
             $table->string('IBAN')->nullable();
             $table->string('SWIFT')->nullable();
-            
-            $table->softDeletes();
-            $table->rememberToken();
             $table->timestamps();
         });
     }
@@ -42,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('agencies');
     }
 };

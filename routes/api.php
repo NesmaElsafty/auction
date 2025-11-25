@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgencyController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CityController;
@@ -36,14 +37,29 @@ Route::get('/cities/{id}', [CityController::class, 'show']);
 Route::get('/regions', [RegionController::class, 'index']);
 Route::get('/regions/{id}', [RegionController::class, 'show']);
 
+Route::get('/agencies', [AgencyController::class, 'index']);
+Route::get('/agencies/{id}', [AgencyController::class, 'show']);
+
 // Protected routes
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'all'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/refresh-token', [AuthController::class, 'refreshToken']);
+    Route::post('/updateProfilePicture', [AuthController::class, 'updateProfilePicture']);
+
+    Route::get('/userAgencies', [AgencyController::class, 'userAgencies']);
 });
 
+Route::middleware(['auth:sanctum', 'user'])->group(function () {
+    // prefix agencies
+        Route::post('/agencies', [AgencyController::class, 'store']);
+        Route::put('/agencies/{id}', [AgencyController::class, 'update']);
+        Route::delete('/agencies/{id}', [AgencyController::class, 'destroy']);
+        Route::post('/agencyAddFiles', [AgencyController::class, 'addFiles']);
+        Route::delete('/agencyRemoveFiles', [AgencyController::class, 'removeFiles']);
+
+});
 // Admin protected routes
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::apiResource('users', UserController::class);
@@ -79,4 +95,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/regions', [RegionController::class, 'store']);
     Route::put('/regions/{id}', [RegionController::class, 'update']);
     Route::delete('/regions/{id}', [RegionController::class, 'destroy']);
+
+    // Admin routes for agencies (bulk actions)
+    Route::post('/agenciesBulkActions', [AgencyController::class, 'bulkActions']);
 });
+

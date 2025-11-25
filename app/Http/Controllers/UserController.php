@@ -52,6 +52,13 @@ class UserController extends Controller
                 'password' => 'required|string|min:6',
                 'type' => 'required|in:user,admin',
                 'is_active' => 'nullable|boolean',
+                // Bank data
+                'bank_name' => 'nullable|string|max:255',
+                'bank_account_name' => 'nullable|string|max:255',
+                'bank_account_number' => 'nullable|string|max:255',
+                'bank_address' => 'nullable|string|max:255',
+                'IBAN' => 'nullable|string|max:255',
+                'SWIFT' => 'nullable|string|max:255',
             ]);
 
             if ($validator->fails()) {
@@ -111,6 +118,13 @@ class UserController extends Controller
                 'password' => 'sometimes|nullable|string|min:6',
                 'type' => 'sometimes|nullable|in:user,admin',
                 'is_active' => 'sometimes|nullable|boolean',
+                // Bank data
+                'bank_name' => 'nullable|string|max:255',
+                'bank_account_name' => 'nullable|string|max:255',
+                'bank_account_number' => 'nullable|string|max:255',
+                'bank_address' => 'nullable|string|max:255',
+                'IBAN' => 'nullable|string|max:255',
+                'SWIFT' => 'nullable|string|max:255',
             ]);
 
             $user = $this->userService->update($id, $request->all());
@@ -199,7 +213,7 @@ class UserController extends Controller
     public function blocklist(Request $request)
     {
         try {
-            $users = $this->userService->blocklist()->paginate(10);
+            $users = $this->userService->blocklist($request->all())->paginate(10);
             return response()->json([
                 'success' => true,
                 'message' => 'Blocklist retrieved successfully',

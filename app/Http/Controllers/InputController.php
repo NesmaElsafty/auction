@@ -46,9 +46,21 @@ class InputController extends Controller
                 'placeholder' => 'nullable|string|max:255',
                 'label' => 'nullable|string|max:255',
                 'is_required' => 'nullable|boolean',
+                'options' => 'nullable|array',
+                'options.*.value' => 'required|string|max:255',
+                'options.*.label' => 'required|string|max:255',
             ]);
 
             $input = $this->inputService->store($request->all());
+
+            if ($request->has('options')) {
+                foreach ($request->options as $option) {
+                    $input->options()->create([
+                        'value' => $option['value'],
+                        'label' => $option['label'],
+                    ]);
+                }
+            }
 
             return response()->json([
                 'success' => true,

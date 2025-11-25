@@ -28,6 +28,13 @@ class UserSeeder extends Seeder
             'password' => Hash::make(123456),
             'type' => 'user',
             'is_active' => true,
+            // Bank data
+            'bank_name' => 'البنك الأهلي السعودي',
+            'bank_account_name' => 'Default User',
+            'bank_account_number' => '1234567890',
+            'bank_address' => 'طريق الملك فهد، الرياض، المملكة العربية السعودية',
+            'IBAN' => 'SA1234567890123456789012',
+            'SWIFT' => 'NCBKSAJE',
         ]);
 
         // Create 50 additional users using factory

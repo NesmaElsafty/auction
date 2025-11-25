@@ -67,10 +67,11 @@ class AuthService
         return $user;
     }
 
-    public function updateProfile(User $user, $data)
+    public function updateProfile($user, $data)
     {
+        // dd($data);
         $user->update($data);
-        return $user->fresh();
+        return $user;
     }
 
     public function refreshToken(User $user)

@@ -161,6 +161,14 @@ class AuthController extends Controller
                 'address' => 'sometimes|string|max:255',
                 'summary' => 'sometimes|string',
                 'link' => 'sometimes|url|max:255',
+
+                // Bank data
+                'bank_name' => 'sometimes|string|max:255',
+                'bank_account_name' => 'sometimes|string|max:255',
+                'bank_account_number' => 'sometimes|string|max:255',
+                'bank_address' => 'sometimes|string|max:255',
+                'IBAN' => 'sometimes|string|max:255',
+                'SWIFT' => 'sometimes|string|max:255',
             ]);
 
             if ($validator->fails()) {
@@ -317,6 +325,34 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to verify OTP',
+                'error' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    // update profile picture
+    public function updateProfilePicture(Request $request)
+    {
+        // dd($request->all());
+        try {
+            $request->validate([
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ]);
+            $user = auth()->user();
+            if ($user->hasMedia('avatar')) {
+                $user->clearMediaCollection('avatar');
+            }
+            $user->addMediaFromRequest('image')->toMediaCollection('avatar');
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile picture updated successfully',
+                'data' => new UserResource($user),
+            ], 200);
+        }
+        catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update profile picture',
                 'error' => $e->getMessage(),
             ], 400);
         }

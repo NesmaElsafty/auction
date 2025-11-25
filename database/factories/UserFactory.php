@@ -62,11 +62,37 @@ class UserFactory extends Factory
             'مشارك في المزادات الإلكترونية مع سجل ممتاز في الصفقات.',
         ];
 
+        $saudiBanks = [
+            'البنك الأهلي السعودي',
+            'البنك السعودي الفرنسي',
+            'بنك الرياض',
+            'البنك السعودي للاستثمار',
+            'بنك الجزيرة',
+            'البنك السعودي الهولندي',
+            'بنك الراجحي',
+            'البنك العربي الوطني',
+            'بنك ساب',
+            'البنك السعودي البريطاني',
+            'بنك الإمارات دبي الوطني',
+            'البنك الأول',
+            'بنك الخليج',
+            'بنك الكويت الوطني',
+        ];
+
         $firstName = fake()->randomElement($arabicFirstNames);
         $lastName = fake()->randomElement($arabicLastNames);
         $city = fake()->randomElement($saudiCities);
         $street = fake()->randomElement($saudiAddresses);
         $buildingNumber = fake()->numberBetween(1, 9999);
+        $bankName = fake()->randomElement($saudiBanks);
+        $bankAccountName = $firstName . ' ' . $lastName;
+        $bankAccountNumber = fake()->numerify('##########');
+        
+        // Generate Saudi IBAN (SA + 2 check digits + 20 alphanumeric)
+        $iban = 'SA' . fake()->numerify('##') . fake()->bothify('####################');
+        
+        // Generate SWIFT code (4 letters + 2 letters + 2 alphanumeric + optional 3 alphanumeric)
+        $swift = strtoupper(fake()->bothify('??????##'));
 
         return [
             'name' => $firstName . ' ' . $lastName,
@@ -80,6 +106,13 @@ class UserFactory extends Factory
             'type' => 'user',
             'is_active' => true,
             'remember_token' => Str::random(10),
+            // Bank data
+            'bank_name' => $bankName,
+            'bank_account_name' => $bankAccountName,
+            'bank_account_number' => $bankAccountNumber,
+            'bank_address' => $street . '، ' . $city . '، المملكة العربية السعودية',
+            'IBAN' => $iban,
+            'SWIFT' => $swift,
         ];
     }
 
