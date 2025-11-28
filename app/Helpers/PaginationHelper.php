@@ -21,4 +21,4 @@ class PaginationHelper
             'to' => $to,
         ];
     }
-} 
+}

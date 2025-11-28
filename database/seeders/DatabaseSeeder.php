@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             OptionSeeder::class,
             CitySeeder::class,
             AgencySeeder::class,
+            AuctionSeeder::class,
         ]);
     }
 }

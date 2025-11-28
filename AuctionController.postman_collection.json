@@ -1,0 +1,571 @@
+{
+	"info": {
+		"_postman_id": "auctions-crud-001",
+		"name": "Auction - Auctions CRUD",
+		"description": "Postman collection for testing Auctions CRUD operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (User)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.token) {",
+									"        pm.environment.set('auth_token', response.data.token);",
+									"        pm.environment.set('user_id', response.data.user.id);",
+									"        console.log('Auth token saved:', response.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"national_id\": \"{{user_national_id}}\",\n    \"password\": \"{{user_password}}\",\n    \"type\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Login as user to get authentication token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auctions",
+			"item": [
+				{
+					"name": "Get All Auctions (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"// Save first auction ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('auction_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auctions?page=1&category_id={{category_id}}&status={{status}}&type={{auction_type}}&search={{search_term}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auctions"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (optional)",
+									"disabled": true
+								},
+								{
+									"key": "category_id",
+									"value": "{{category_id}}",
+									"description": "Filter by category ID (optional)",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "{{status}}",
+									"description": "Filter by status: pending, current, completed, cancelled (optional)",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "{{auction_type}}",
+									"description": "Filter by type: online, both (optional)",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "{{search_term}}",
+									"description": "Search by name or description (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all auctions with optional filters. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Auction by ID (Public)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has auction data', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.have.property('id');",
+									"    pm.expect(response.data).to.have.property('name');",
+									"});",
+									"",
+									"// Save auction ID for later use",
+									"const response = pm.response.json();",
+									"if (response.success && response.data) {",
+									"    pm.environment.set('auction_id', response.data.id);",
+									"    if (response.data.category_id) {",
+									"        pm.environment.set('category_id', response.data.category_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auctions/{{auction_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auctions",
+								"{{auction_id}}"
+							]
+						},
+						"description": "Get a specific auction by ID with its category, user, and item data. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Auctions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"// Save first auction ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('auction_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/userAuctions?page=1&category_id={{category_id}}&status={{status}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"userAuctions"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (optional)",
+									"disabled": true
+								},
+								{
+									"key": "category_id",
+									"value": "{{category_id}}",
+									"description": "Filter by category ID (optional)",
+									"disabled": true
+								},
+								{
+									"key": "status",
+									"value": "{{status}}",
+									"description": "Filter by status (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all auctions for the authenticated user (both as user and through agencies). Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Protected Routes",
+					"auth": {
+						"type": "bearer",
+						"bearer": [
+							{
+								"key": "token",
+								"value": "{{auth_token}}",
+								"type": "string"
+							}
+						]
+					},
+					"item": [
+						{
+							"name": "Create Auction (User - For Self)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 201', function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"pm.test('Response has success true', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.success).to.be.true;",
+											"});",
+											"",
+											"pm.test('Response has auction data', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.data).to.have.property('id');",
+											"    pm.expect(response.data).to.have.property('name');",
+											"});",
+											"",
+											"// Save auction ID for later use",
+											"const response = pm.response.json();",
+											"if (response.success && response.data) {",
+											"    pm.environment.set('auction_id', response.data.id);",
+											"    console.log('Auction ID saved:', response.data.id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"category_id\": {{category_id}},\n    \"name\": \"مزاد جديد للمستخدم\",\n    \"description\": \"وصف تفصيلي للمزاد\",\n    \"type\": \"online\",\n    \"is_infaz\": false,\n    \"start_price\": 10000.00,\n    \"end_price\": 50000.00,\n    \"deposit_price\": 5000.00,\n    \"minimum_bid_increment\": 500,\n    \"youtube_link\": \"https://www.youtube.com/watch?v=example\",\n    \"start_date\": \"2024-12-01 10:00:00\",\n    \"end_date\": \"2024-12-31 18:00:00\",\n    \"awarding_period_days\": 7,\n    \"status\": \"pending\",\n    \"is_active\": true,\n    \"is_approved\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/auctions",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auctions"
+									]
+								},
+								"description": "Create a new auction for the authenticated user. Requires user authentication.\n\n**Required fields:**\n- category_id: integer (must exist in categories table)\n- name: string\n\n**Optional fields:**\n- agency_id: integer (if provided, auction will be created for that agency)\n- description: string\n- type: 'online' or 'both'\n- is_infaz: boolean\n- start_price, end_price, deposit_price: decimal\n- minimum_bid_increment: integer\n- youtube_link: url\n- start_date, end_date: datetime\n- awarding_period_days: integer\n- status: 'pending', 'current', 'completed', 'cancelled'\n- is_active, is_approved: boolean"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Auction (User - For Agency)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 201', function () {",
+											"    pm.response.to.have.status(201);",
+											"});",
+											"",
+											"pm.test('Response has success true', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.success).to.be.true;",
+											"});",
+											"",
+											"pm.test('Response has auction data', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.data).to.have.property('id');",
+											"    pm.expect(response.data).to.have.property('name');",
+											"});",
+											"",
+											"// Save auction ID for later use",
+											"const response = pm.response.json();",
+											"if (response.success && response.data) {",
+											"    pm.environment.set('auction_id', response.data.id);",
+											"    console.log('Auction ID saved:', response.data.id);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"category_id\": {{category_id}},\n    \"agency_id\": {{agency_id}},\n    \"name\": \"مزاد جديد للوكالة\",\n    \"description\": \"وصف تفصيلي للمزاد الخاص بالوكالة\",\n    \"type\": \"both\",\n    \"is_infaz\": true,\n    \"start_price\": 20000.00,\n    \"end_price\": 100000.00,\n    \"deposit_price\": 10000.00,\n    \"minimum_bid_increment\": 1000,\n    \"youtube_link\": \"https://www.youtube.com/watch?v=example\",\n    \"start_date\": \"2024-12-01 10:00:00\",\n    \"end_date\": \"2024-12-31 18:00:00\",\n    \"awarding_period_days\": 14,\n    \"status\": \"pending\",\n    \"is_active\": true,\n    \"is_approved\": false\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/auctions",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auctions"
+									]
+								},
+								"description": "Create a new auction for one of the user's agencies. Requires user authentication.\n\n**Required fields:**\n- category_id: integer\n- name: string\n\n**Optional fields:**\n- agency_id: integer (must belong to the authenticated user)\n- All other fields same as Create Auction (User - For Self)"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Auction (User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response has success true', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.success).to.be.true;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"name\": \"مزاد محدث\",\n    \"description\": \"وصف محدث للمزاد\",\n    \"type\": \"both\",\n    \"is_infaz\": true,\n    \"start_price\": 15000.00,\n    \"end_price\": 75000.00,\n    \"deposit_price\": 7500.00,\n    \"minimum_bid_increment\": 750,\n    \"status\": \"current\",\n    \"is_active\": true\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/auctions/{{auction_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auctions",
+										"{{auction_id}}"
+									]
+								},
+								"description": "Update an existing auction. All fields are optional. You can only update auctions that belong to you or your agencies. Requires user authentication."
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Auction (User)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test('Status code is 200', function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test('Response has success true', function () {",
+											"    const response = pm.response.json();",
+											"    pm.expect(response.success).to.be.true;",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/auctions/{{auction_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"auctions",
+										"{{auction_id}}"
+									]
+								},
+								"description": "Delete an auction. You can only delete auctions that belong to you or your agencies. Requires user authentication."
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "auth_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "auction_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "category_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "agency_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_national_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_password",
+			"value": "123456",
+			"type": "string"
+		},
+		{
+			"key": "status",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "auction_type",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "search_term",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
