@@ -110,4 +110,3 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     // Admin routes for agencies (bulk actions)
     Route::post('agenciesBulkActions', [AgencyController::class, 'bulkActions']);
 });
-

@@ -45,6 +45,7 @@ class AuctionController extends Controller
             $request->validate([
                 'category_id' => 'required|exists:categories,id',
                 'user_id' => 'required',
+                'post_type' => 'required|in:auction,purchase',
                 'user_type' => 'required|in:user,agency',
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
@@ -65,6 +66,10 @@ class AuctionController extends Controller
                 'items.*.input_id' => 'required|exists:inputs,id',
                 'items.*.label' => 'required|string|max:255',
                 'items.*.value' => 'required|string|max:255',
+
+                'purchase_min_amount' => 'required:if:post_type,purchase|numeric|min:0',
+                'purchase_amount' => 'required:if:post_type,purchase|numeric|min:0',
+
             ]);
 
             $user = auth()->user();
@@ -80,12 +85,16 @@ class AuctionController extends Controller
             // upload items
             if ($request->items && count($request->items) > 0) {
                 foreach ($request->items as $item) {
-                    $itemData = ItemData::create([
-                        'auction_id' => $auction->id,
-                        'input_id' => $item['input_id'],
-                        'label' => $item['label'],
-                        'value' => $item['value'],
-                    ]);
+                    if($item->hasfile('document')){
+                        $item->addMedia($item->file('document'))->toMediaCollection('documents');
+                    }else{
+                        $itemData = ItemData::create([
+                            'auction_id' => $auction->id,
+                            'input_id' => $item['input_id'],
+                            'label' => $item['label'],
+                            'value' => $item['value'],
+                        ]);
+                    }
                 }
             }
 

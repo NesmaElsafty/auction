@@ -12,46 +12,58 @@ return new class extends Migration
     public function up(): void
     {
        Schema::create('auctions', function (Blueprint $table) {
-    $table->id();
+            $table->id();
 
-    $table->foreignId('category_id')
-          ->constrained('categories')
-          ->onDelete('cascade');
+            $table->foreignId('category_id')
+                ->constrained('categories')
+                ->onDelete('cascade');
 
-    // user_id + user_type
-    $table->morphs('user');
+            // user_id + user_type
+            $table->morphs('user');
 
-    $table->string('name');
-    $table->text('description')->nullable();
+            $table->enum('post_type', ['Auction', 'Purchase'])->nullable();
 
-    $table->enum('type', ['online', 'both'])->nullable();
-    $table->boolean('is_infaz')->default(false);
+            $table->string('name');
+            $table->text('description')->nullable();
 
-    // prices
-    $table->decimal('start_price', 12, 2)->nullable();
-    $table->decimal('end_price', 12, 2)->nullable();
-    $table->decimal('deposit_price', 12, 2)->nullable();
+            $table->enum('type', ['online', 'both'])->nullable();
+            $table->boolean('is_infaz')->default(false);
 
-    // bidding step
-    $table->integer('minimum_bid_increment')->nullable();
+            // prices
+            $table->decimal('purchase_min_amount', 12, 2)->nullable();
+            $table->decimal('purchase_amount', 12, 2)->nullable();
 
-    // media
-    $table->string('youtube_link')->nullable();
 
-    // timings
-    $table->timestamp('start_date')->nullable();
-    $table->timestamp('end_date')->nullable();
-    $table->integer('awarding_period_days')->nullable();
+            $table->decimal('start_price', 12, 2)->nullable();
+            $table->decimal('end_price', 12, 2)->nullable();
+            $table->decimal('deposit_price', 12, 2)->nullable();
 
-    // status
-    $table->enum('status', ['pending', 'current', 'completed', 'cancelled'])
-          ->default('pending');
+            // bidding step
+            $table->integer('minimum_bid_increment')->nullable();
 
-    $table->boolean('is_active')->default(true);
-    $table->boolean('is_approved')->default(false);
+            // media
+            $table->string('youtube_link')->nullable();
 
-    $table->timestamps();
-});
+            // timings
+            $table->timestamp('start_date')->nullable();
+            $table->timestamp('end_date')->nullable();
+            $table->integer('awarding_period_days')->nullable();
+
+            // location
+            $table->text('location')->nullable();
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
+            $table->timestamp('viewing_date')->nullable();
+
+            // status
+            $table->enum('status', ['pending', 'current', 'completed', 'cancelled'])
+                ->default('pending');
+
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_approved')->default(false);
+
+            $table->timestamps();
+        });
 
     }
 
