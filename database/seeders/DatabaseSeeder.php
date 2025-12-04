@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             CitySeeder::class,
             AgencySeeder::class,
             AuctionSeeder::class,
+            ContactUsSeeder::class
         ]);
     }
 }

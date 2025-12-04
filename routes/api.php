@@ -11,7 +11,7 @@ use App\Http\Controllers\RegionController;
 use App\Http\Controllers\ScreenController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\ContactUsController;
 // Public routes
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
@@ -44,6 +44,10 @@ Route::get('agencies/{id}', [AgencyController::class, 'show']);
 Route::get('auctions', [AuctionController::class, 'index']);
 Route::get('auctions/{id}', [AuctionController::class, 'show']);
 
+// contact us
+Route::get('contactUs', [ContactUsController::class, 'index']);
+
+
 // Protected routes
 Route::middleware(['auth:sanctum', 'all'])->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
@@ -71,6 +75,9 @@ Route::middleware(['auth:sanctum', 'user'])->group(function () {
         Route::post('auctionAddImage', [AuctionController::class, 'addImages']);
         Route::delete('auctionRemoveImage', [AuctionController::class, 'removeImages']);
 });
+
+
+
 // Admin protected routes
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::apiResource('users', UserController::class);
@@ -108,5 +115,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::delete('regions/{id}', [RegionController::class, 'destroy']);
 
     // Admin routes for agencies (bulk actions)
-    Route::post('agenciesBulkActions', [AgencyController::class, 'bulkActions']);
+    Route::post('agenciesBulkActions', [AgencyController::class, 'bulkActions']); 
+
+    // store contact us
+    Route::post('contactUs', [ContactUsController::class, 'store']);
 });
