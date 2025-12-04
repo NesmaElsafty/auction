@@ -1,0 +1,960 @@
+{
+	"info": {
+		"_postman_id": "terms-crud-001",
+		"name": "Term - Terms CRUD",
+		"description": "Postman collection for testing Terms CRUD operations (Terms, Privacy Policy, FAQs)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.token) {",
+									"        pm.environment.set('admin_token', response.data.token);",
+									"        pm.environment.set('auth_token', response.data.token);",
+									"        pm.environment.set('user_id', response.data.user.id);",
+									"        console.log('Admin token saved:', response.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"national_id\": \"{{national_id}}\",\n    \"password\": \"password123\",\n    \"type\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "Login as admin to get authentication token for protected routes"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Public Routes",
+			"item": [
+				{
+					"name": "Get All Terms",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"// Save first term ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('term_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/terms?type=terms&search={{search}}&is_active={{is_active}}&sorted_by={{sorted_by}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "terms",
+									"description": "Required: terms, privacy_policy, or faqs"
+								},
+								{
+									"key": "search",
+									"value": "{{search}}",
+									"description": "Search by title or description (optional)",
+									"disabled": true
+								},
+								{
+									"key": "is_active",
+									"value": "{{is_active}}",
+									"description": "Filter by active status: true, false, or all (optional)",
+									"disabled": true
+								},
+								{
+									"key": "sorted_by",
+									"value": "{{sorted_by}}",
+									"description": "Sort by: title, oldest, newest, or all (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all terms. Type parameter is required. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Privacy Policies",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/terms?type=privacy_policy",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "privacy_policy",
+									"description": "Required: terms, privacy_policy, or faqs"
+								}
+							]
+						},
+						"description": "Get all privacy policies. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All FAQs",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/terms?type=faqs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "faqs",
+									"description": "Required: terms, privacy_policy, or faqs"
+								}
+							]
+						},
+						"description": "Get all FAQs. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Term by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data object', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('object');",
+									"});",
+									"",
+									"pm.test('Data has required fields', function () {",
+									"    const response = pm.response.json();",
+									"    if (response.data) {",
+									"        pm.expect(response.data).to.have.property('id');",
+									"        pm.expect(response.data).to.have.property('title');",
+									"        pm.expect(response.data).to.have.property('description');",
+									"        pm.expect(response.data).to.have.property('type');",
+									"        pm.expect(response.data).to.have.property('is_active');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/terms/{{term_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms",
+								"{{term_id}}"
+							]
+						},
+						"description": "Get a specific term by ID. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Terms with Filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/terms?type=terms&search=شروط&is_active=true&sorted_by=newest",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "terms",
+									"description": "Required: terms, privacy_policy, or faqs"
+								},
+								{
+									"key": "search",
+									"value": "شروط",
+									"description": "Search by title or description"
+								},
+								{
+									"key": "is_active",
+									"value": "true",
+									"description": "Filter by active status"
+								},
+								{
+									"key": "sorted_by",
+									"value": "newest",
+									"description": "Sort by: title, oldest, newest"
+								}
+							]
+						},
+						"description": "Get terms with all filters applied (search, is_active, sorted_by)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin Routes",
+			"item": [
+				{
+					"name": "Create Term",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data object', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('object');",
+									"});",
+									"",
+									"// Save created term ID",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.id) {",
+									"    pm.environment.set('term_id', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"شروط وأحكام الاستخدام\",\n    \"description\": \"هذه الشروط والأحكام تحكم استخدام منصة المزادات. يجب على جميع المستخدمين الالتزام بهذه الشروط عند المشاركة في أي مزاد.\",\n    \"type\": \"terms\",\n    \"is_active\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/terms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms"
+							]
+						},
+						"description": "Create a new term. Requires admin authentication. All fields are required: title, description, type, is_active."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Privacy Policy",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"سياسة الخصوصية\",\n    \"description\": \"نحن ملتزمون بحماية خصوصيتك. تحدد سياسة الخصوصية هذه كيفية جمع واستخدام وحماية معلوماتك الشخصية عند استخدام منصة المزادات.\",\n    \"type\": \"privacy_policy\",\n    \"is_active\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/terms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms"
+							]
+						},
+						"description": "Create a new privacy policy. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Create FAQ",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"كيف يمكنني التسجيل في المزادات؟\",\n    \"description\": \"يمكنك التسجيل في المزادات من خلال إنشاء حساب جديد على المنصة. ستحتاج إلى تقديم معلوماتك الشخصية وإكمال عملية التحقق من الهوية.\",\n    \"type\": \"faqs\",\n    \"is_active\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/terms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms"
+							]
+						},
+						"description": "Create a new FAQ. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Term",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data object', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('object');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"شروط وأحكام الاستخدام المحدثة\",\n    \"description\": \"تم تحديث الشروط والأحكام. هذه الشروط والأحكام تحكم استخدام منصة المزادات. يجب على جميع المستخدمين الالتزام بهذه الشروط عند المشاركة في أي مزاد.\",\n    \"is_active\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/terms/{{term_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms",
+								"{{term_id}}"
+							]
+						},
+						"description": "Update an existing term. Requires admin authentication. All fields are optional: title, description, is_active. Note: type cannot be changed after creation."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Term - Partial Update",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"is_active\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/terms/{{term_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms",
+								"{{term_id}}"
+							]
+						},
+						"description": "Partially update a term (only is_active field). Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Term",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has success message', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.message).to.include('deleted');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/terms/{{term_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms",
+								"{{term_id}}"
+							]
+						},
+						"description": "Delete a term. Requires admin authentication."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Error Cases",
+			"item": [
+				{
+					"name": "Get Terms - Missing Type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 422 or 500', function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([422, 500]);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/terms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms"
+							]
+						},
+						"description": "Test error case: Missing required type parameter"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Term - Missing Required Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 422', function () {",
+									"    pm.response.to.have.status(422);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Test Term\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/terms",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms"
+							]
+						},
+						"description": "Test error case: Missing required fields (description, type, is_active)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Term - Invalid ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/terms/99999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms",
+								"99999"
+							]
+						},
+						"description": "Test error case: Term not found"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Term - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Test\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/terms/{{term_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"terms",
+								"{{term_id}}"
+							]
+						},
+						"description": "Test error case: Unauthorized access (no token)"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "term_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "search",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "is_active",
+			"value": "all",
+			"type": "string"
+		},
+		{
+			"key": "sorted_by",
+			"value": "all",
+			"type": "string"
+		}
+	]
+}
+

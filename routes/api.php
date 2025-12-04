@@ -12,6 +12,7 @@ use App\Http\Controllers\ScreenController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactUsController;
+use App\Http\Controllers\TermController;
 // Public routes
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
@@ -46,6 +47,10 @@ Route::get('auctions/{id}', [AuctionController::class, 'show']);
 
 // contact us
 Route::get('contactUs', [ContactUsController::class, 'index']);
+
+// terms (public routes - index and show only)
+Route::get('terms', [TermController::class, 'index']);
+Route::get('terms/{id}', [TermController::class, 'show']);
 
 
 // Protected routes
@@ -119,4 +124,9 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     // store contact us
     Route::post('contactUs', [ContactUsController::class, 'store']);
+
+    // Admin routes for terms (store, update, destroy)
+    Route::post('terms', [TermController::class, 'store']);
+    Route::put('terms/{id}', [TermController::class, 'update']);
+    Route::delete('terms/{id}', [TermController::class, 'destroy']);
 });
