@@ -145,8 +145,10 @@ class AlertService
      */
     public static function createAlertsFromNotification($notification)
     {
+        // dd($notification);
         if ($notification->status !== 'sent') {
-            return;
+            $notification->update(['status' => 'sent']);
+
         }
 
         // Get all active users with type 'user'
@@ -155,7 +157,7 @@ class AlertService
             ->get();
 
         if ($users->isEmpty()) {
-            return;
+            return false;
         }
 
         $alerts = [];

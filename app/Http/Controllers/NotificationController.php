@@ -4,16 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Helpers\PaginationHelper;
 use App\Http\Resources\NotificationResource;
+use App\Models\Notification;
 use App\Services\NotificationService;
+use App\Services\AlertService;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
     protected NotificationService $notificationService;
+    protected AlertService $alertService;
 
-    public function __construct(NotificationService $notificationService)
+    public function __construct(NotificationService $notificationService, AlertService $alertService)
     {
         $this->notificationService = $notificationService;
+        $this->alertService = $alertService;
     }
 
     public function index(Request $request)
@@ -121,6 +125,27 @@ class NotificationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete notification',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function notificationAlerts($id)
+    {
+        try {
+            $notification = Notification::find($id);
+            
+            $alerts = $this->alertService->createAlertsFromNotification($notification);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Alerts created successfully',
+                'data' => $alerts,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create alerts',
                 'error' => $e->getMessage(),
             ], 500);
         }
