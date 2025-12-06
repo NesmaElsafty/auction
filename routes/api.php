@@ -13,6 +13,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactUsController;
 use App\Http\Controllers\TermController;
+use App\Http\Controllers\NotificationController;
 // Public routes
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
@@ -129,4 +130,11 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('terms', [TermController::class, 'store']);
     Route::put('terms/{id}', [TermController::class, 'update']);
     Route::delete('terms/{id}', [TermController::class, 'destroy']);
+
+    // Admin routes for notifications
+    Route::get('notifications', [NotificationController::class, 'index']);
+    Route::get('notifications/{id}', [NotificationController::class, 'show']);
+    Route::post('notifications', [NotificationController::class, 'store']);
+    Route::put('notifications/{id}', [NotificationController::class, 'update']);
+    Route::delete('notifications/{id}', [NotificationController::class, 'destroy']);
 });

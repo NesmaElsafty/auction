@@ -25,7 +25,8 @@ class DatabaseSeeder extends Seeder
             AgencySeeder::class,
             AuctionSeeder::class,
             ContactUsSeeder::class,
-            TermSeeder::class
+            TermSeeder::class,
+            NotificationSeeder::class
         ]);
     }
 }

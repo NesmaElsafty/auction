@@ -5,14 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Term extends Model
+class Notification extends Model
 {
     use HasFactory;
 
-    protected $guarded   = [];
+    protected $guarded = [];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'type' => 'enum:terms,privacy_policy,faqs',
+        'type' => 'enum:notify,reminder',
+        'status' => 'enum:pending,sent,unsent',
     ];
 }
