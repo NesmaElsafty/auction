@@ -20,6 +20,8 @@ class CategoryResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'start_precentage' => $this->start_precentage,
+            'end_precentage' => $this->end_precentage,
             'title' => $this->title,
             'content' => $this->content,
             'type' => $this->type,

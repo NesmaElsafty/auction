@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
 
+            $table->decimal('start_precentage', 10, 2)->nullable();
+            $table->decimal('end_precentage', 10, 2)->nullable();
+
             $table->string('title')->nullable();
             $table->text('content')->nullable();
             $table->enum('type', ['terms', 'contracts']);

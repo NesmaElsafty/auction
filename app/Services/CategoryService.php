@@ -44,6 +44,8 @@ class CategoryService
         try {
             $category = Category::create([
                 'name' => $data['name'],
+                'start_precentage' => $data['start_precentage'] ?? null,
+                'end_precentage' => $data['end_precentage'] ?? null,
                 'title' => $data['title'] ?? null,
                 'content' => $data['content'] ?? null,
                 'type' => $data['type'],
@@ -69,6 +71,8 @@ class CategoryService
 
             $category->update([
                 'name' => $data['name'] ?? $category->name,
+                'start_precentage' => $data['start_precentage'] ?? $category->start_precentage,
+                'end_precentage' => $data['end_precentage'] ?? $category->end_precentage,
                 'title' => $data['title'] ?? $category->title,
                 'content' => $data['content'] ?? $category->content,
                 'type' => $data['type'] ?? $category->type,

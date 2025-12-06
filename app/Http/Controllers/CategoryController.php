@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\PaginationHelper;
 use App\Http\Resources\CategoryResource;
 use App\Services\CategoryService;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Models\Screen;
 
@@ -42,6 +43,8 @@ class CategoryController extends Controller
         try {
            $request->validate([
                 'name' => 'required|string|max:255',
+                'start_precentage' => 'nullable|numeric|min:0|max:100',
+                'end_precentage' => 'nullable|numeric|min:0|max:100',
                 'title' => 'nullable|string|max:255',
                 'content' => 'nullable|string',
                 'type' => 'required|in:terms,contracts',
@@ -88,6 +91,12 @@ class CategoryController extends Controller
     {
         try {
             $category = Category::with('screens', 'screens.inputs', 'screens.inputs.options')->find($id);
+            if (!$category) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Category not found',
+                ], 404);
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'Category retrieved successfully',
@@ -107,6 +116,8 @@ class CategoryController extends Controller
         try {
           $request->validate([
                 'name' => 'nullable|string|max:255',
+                'start_precentage' => 'nullable|numeric|min:0|max:100',
+                'end_precentage' => 'nullable|numeric|min:0|max:100',
                 'title' => 'nullable|string|max:255',
                 'content' => 'nullable|string',
                 'type' => 'nullable|in:terms,contracts',

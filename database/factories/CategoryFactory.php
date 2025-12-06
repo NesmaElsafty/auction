@@ -48,6 +48,8 @@ class CategoryFactory extends Factory
 
         return [
             'name' => fake()->unique()->randomElement($arabicNames),
+            'start_precentage' => fake()->randomFloat(2, 0, 50),
+            'end_precentage' => fake()->randomFloat(2, 51, 100),
             'title' => fake()->unique()->randomElement($arabicTitles),
             'content' => fake()->unique()->randomElement($arabicContent),
             'type' => fake()->randomElement(['terms', 'contracts']),
