@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ContactUsController;
 use App\Http\Controllers\TermController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\AlertController;
 // Public routes
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
@@ -64,6 +65,13 @@ Route::middleware(['auth:sanctum', 'all'])->group(function () {
 
     Route::get('userAgencies', [AgencyController::class, 'userAgencies']);
     Route::get('userAuctions', [AuctionController::class, 'userAuctions']);
+
+    // Alerts routes (user's own alerts)
+    Route::get('alerts', [AlertController::class, 'index']);
+    Route::get('alerts/{id}', [AlertController::class, 'show']);
+    Route::delete('alerts/{id}', [AlertController::class, 'destroy']);
+    Route::post('alertsBulkAction', [AlertController::class, 'bulkAction']);
+    Route::post('alertToggleRead/{id}', [AlertController::class, 'toggleRead']);
 });
 
 Route::middleware(['auth:sanctum', 'user'])->group(function () {

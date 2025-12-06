@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Notification;
+use App\Services\AlertService;
 use Illuminate\Support\Facades\DB;
 
 class NotificationService
@@ -76,6 +77,11 @@ class NotificationService
                 'is_active' => $data['is_active'] ?? true,
             ]);
 
+            // If status is 'sent', create alerts for all active users
+            if ($notification->status === 'sent') {
+                AlertService::createAlertsFromNotification($notification);
+            }
+
             DB::commit();
             return $notification;
         } catch (\Exception $e) {
@@ -93,6 +99,8 @@ class NotificationService
                 throw new \Exception('Notification not found');
             }
 
+            $oldStatus = $notification->status;
+            
             $notification->update([
                 'title' => $data['title'] ?? $notification->title,
                 'description' => $data['description'] ?? $notification->description,
@@ -100,6 +108,11 @@ class NotificationService
                 'status' => $data['status'] ?? $notification->status,
                 'is_active' => isset($data['is_active']) ? filter_var($data['is_active'], FILTER_VALIDATE_BOOLEAN) : $notification->is_active,
             ]);
+
+            // If status changed to 'sent', create alerts for all active users
+            if ($notification->status === 'sent' && $oldStatus !== 'sent') {
+                AlertService::createAlertsFromNotification($notification);
+            }
 
             DB::commit();
             return $notification;

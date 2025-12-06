@@ -44,8 +44,8 @@ class TermFactory extends Factory
         ];
 
         return [
-            'title' => fake()->unique()->randomElement($arabicTitles),
-            'description' => fake()->unique()->randomElement($arabicDescriptions),
+            'title' => fake()->randomElement($arabicTitles),
+            'description' => fake()->randomElement($arabicDescriptions),
             'type' => fake()->randomElement(['terms', 'privacy_policy', 'faqs']),
             'is_active' => fake()->boolean(80), // 80% chance of being active
         ];

@@ -13,6 +13,5 @@ class Term extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'type' => 'enum:terms,privacy_policy,faqs',
     ];
 }

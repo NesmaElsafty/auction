@@ -1,0 +1,1195 @@
+{
+	"info": {
+		"_postman_id": "alerts-crud-001",
+		"name": "Alert - Alerts CRUD",
+		"description": "Postman collection for testing Alerts CRUD operations (User's personal alerts)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (User)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.token) {",
+									"        pm.environment.set('user_token', response.data.token);",
+									"        pm.environment.set('auth_token', response.data.token);",
+									"        pm.environment.set('user_id', response.data.user.id);",
+									"        console.log('User token saved:', response.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"national_id\": \"{{national_id}}\",\n    \"password\": \"password123\",\n    \"type\": \"user\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "Login as user to get authentication token for protected routes"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User Routes",
+			"item": [
+				{
+					"name": "Get All Alerts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"pm.test('Response has pagination', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.pagination).to.be.an('object');",
+									"});",
+									"",
+									"// Save first alert ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('alert_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts?is_read={{is_read}}&search={{search}}&sorted_by={{sorted_by}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts"
+							],
+							"query": [
+								{
+									"key": "is_read",
+									"value": "{{is_read}}",
+									"description": "Filter by read status: true, false, or all (optional)",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "{{search}}",
+									"description": "Search by title or description (optional)",
+									"disabled": true
+								},
+								{
+									"key": "sorted_by",
+									"value": "{{sorted_by}}",
+									"description": "Sort by: title, oldest, newest, or all (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all alerts for the authenticated user with optional filters. Requires authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Alerts - Unread Only",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('All alerts are unread', function () {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.length > 0) {",
+									"        response.data.forEach(alert => {",
+									"            pm.expect(alert.is_read).to.be.false;",
+									"        });",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts?is_read=false",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts"
+							],
+							"query": [
+								{
+									"key": "is_read",
+									"value": "false",
+									"description": "Filter by read status: false (unread)"
+								}
+							]
+						},
+						"description": "Get all unread alerts for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Alerts - Read Only",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts?is_read=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts"
+							],
+							"query": [
+								{
+									"key": "is_read",
+									"value": "true",
+									"description": "Filter by read status: true (read)"
+								}
+							]
+						},
+						"description": "Get all read alerts for the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Alerts - Sorted by Newest",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts?sorted_by=newest",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts"
+							],
+							"query": [
+								{
+									"key": "sorted_by",
+									"value": "newest",
+									"description": "Sort by: newest"
+								}
+							]
+						},
+						"description": "Get alerts sorted by newest first (default)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Alerts - Sorted by Oldest",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts?sorted_by=oldest",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts"
+							],
+							"query": [
+								{
+									"key": "sorted_by",
+									"value": "oldest",
+									"description": "Sort by: oldest"
+								}
+							]
+						},
+						"description": "Get alerts sorted by oldest first."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Alerts - Search by Title",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts?search=إشعار",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "إشعار",
+									"description": "Search by title or description"
+								}
+							]
+						},
+						"description": "Search alerts by title or description."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Alerts - With All Filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts?is_read=false&search=إشعار&sorted_by=newest",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts"
+							],
+							"query": [
+								{
+									"key": "is_read",
+									"value": "false",
+									"description": "Filter by read status"
+								},
+								{
+									"key": "search",
+									"value": "إشعار",
+									"description": "Search by title or description"
+								},
+								{
+									"key": "sorted_by",
+									"value": "newest",
+									"description": "Sort by: newest"
+								}
+							]
+						},
+						"description": "Get alerts with all filters applied (is_read, search, sorted_by)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Alert by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data object', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('object');",
+									"});",
+									"",
+									"pm.test('Data has required fields', function () {",
+									"    const response = pm.response.json();",
+									"    if (response.data) {",
+									"        pm.expect(response.data).to.have.property('id');",
+									"        pm.expect(response.data).to.have.property('title');",
+									"        pm.expect(response.data).to.have.property('description');",
+									"        pm.expect(response.data).to.have.property('user_id');",
+									"        pm.expect(response.data).to.have.property('is_read');",
+									"        pm.expect(response.data).to.have.property('created_at');",
+									"        pm.expect(response.data).to.have.property('updated_at');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts/{{alert_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts",
+								"{{alert_id}}"
+							]
+						},
+						"description": "Get a specific alert by ID. Requires authentication and the alert must belong to the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Toggle Alert Read Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data object', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('object');",
+									"});",
+									"",
+									"pm.test('Read status is toggled', function () {",
+									"    const response = pm.response.json();",
+									"    if (response.data) {",
+									"        pm.expect(response.data).to.have.property('is_read');",
+									"        pm.expect(response.data.is_read).to.be.a('boolean');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts/{{alert_id}}/toggleRead",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts",
+								"{{alert_id}}",
+								"toggleRead"
+							]
+						},
+						"description": "Toggle the read status of an alert (mark as read/unread). Requires authentication and the alert must belong to the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Alert",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has success message', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.message).to.include('deleted');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts/{{alert_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts",
+								"{{alert_id}}"
+							]
+						},
+						"description": "Delete an alert. Requires authentication and the alert must belong to the authenticated user."
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Action - Delete Alerts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data with deleted_count', function () {",
+									"    const response = pm.response.json();",
+									"    if (response.data) {",
+									"        pm.expect(response.data).to.have.property('deleted_count');",
+									"        pm.expect(response.data).to.have.property('deleted_ids');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ids\": [{{alert_id}}],\n    \"action\": \"delete\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/alerts/bulkAction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts",
+								"bulkAction"
+							]
+						},
+						"description": "Delete multiple alerts at once. Requires authentication and all alerts must belong to the authenticated user. Action: 'delete' or 'toggleRead'."
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Action - Toggle Read Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data with updated_count', function () {",
+									"    const response = pm.response.json();",
+									"    if (response.data) {",
+									"        pm.expect(response.data).to.have.property('updated_count');",
+									"        pm.expect(response.data).to.have.property('read_count');",
+									"        pm.expect(response.data).to.have.property('unread_count');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ids\": [{{alert_id}}],\n    \"action\": \"toggleRead\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/alerts/bulkAction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts",
+								"bulkAction"
+							]
+						},
+						"description": "Toggle read status for multiple alerts at once. Requires authentication and all alerts must belong to the authenticated user."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Error Cases",
+			"item": [
+				{
+					"name": "Get Alert - Invalid ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Response has success false', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts/99999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts",
+								"99999"
+							]
+						},
+						"description": "Test error case: Alert not found or doesn't belong to user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Alerts - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts"
+							]
+						},
+						"description": "Test error case: Unauthorized access (no token)"
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Action - Missing Required Fields",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 422', function () {",
+									"    pm.response.to.have.status(422);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ids\": [1, 2, 3]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/alerts/bulkAction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts",
+								"bulkAction"
+							]
+						},
+						"description": "Test error case: Missing required field 'action'"
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Action - Invalid Action",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 422', function () {",
+									"    pm.response.to.have.status(422);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ids\": [1, 2, 3],\n    \"action\": \"invalid_action\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/alerts/bulkAction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts",
+								"bulkAction"
+							]
+						},
+						"description": "Test error case: Invalid action value (must be 'delete' or 'toggleRead')"
+					},
+					"response": []
+				},
+				{
+					"name": "Bulk Action - Empty IDs Array",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 422', function () {",
+									"    pm.response.to.have.status(422);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ids\": [],\n    \"action\": \"delete\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/alerts/bulkAction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts",
+								"bulkAction"
+							]
+						},
+						"description": "Test error case: Empty IDs array"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Alert - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts/{{alert_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts",
+								"{{alert_id}}"
+							]
+						},
+						"description": "Test error case: Unauthorized access (no token)"
+					},
+					"response": []
+				},
+				{
+					"name": "Toggle Read - Alert Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Response has success false', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/alerts/99999/toggleRead",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"alerts",
+								"99999",
+								"toggleRead"
+							]
+						},
+						"description": "Test error case: Alert not found or doesn't belong to user"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "alert_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "is_read",
+			"value": "all",
+			"type": "string"
+		},
+		{
+			"key": "search",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "sorted_by",
+			"value": "all",
+			"type": "string"
+		},
+		{
+			"key": "national_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
