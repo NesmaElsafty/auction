@@ -1,0 +1,1085 @@
+{
+	"info": {
+		"_postman_id": "settings-crud-001",
+		"name": "Setting - Settings CRUD",
+		"description": "Postman collection for testing Settings CRUD operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.token) {",
+									"        pm.environment.set('admin_token', response.data.token);",
+									"        pm.environment.set('auth_token', response.data.token);",
+									"        pm.environment.set('user_id', response.data.user.id);",
+									"        console.log('Admin token saved:', response.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"national_id\": \"{{national_id}}\",\n    \"password\": \"password123\",\n    \"type\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						},
+						"description": "Login as admin to get authentication token for protected routes"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Public Routes",
+			"item": [
+				{
+					"name": "Get All Settings",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"",
+									"pm.test('Response has pagination', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.pagination).to.be.an('object');",
+									"});",
+									"",
+									"// Save first setting ID if available",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.length > 0) {",
+									"    pm.environment.set('setting_id', response.data[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/settings?type={{type}}&search={{search}}&sorted_by={{sorted_by}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "{{type}}",
+									"description": "Filter by type (optional)",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "{{search}}",
+									"description": "Search by name, type, or value (optional)",
+									"disabled": true
+								},
+								{
+									"key": "sorted_by",
+									"value": "{{sorted_by}}",
+									"description": "Sort by: name, type, oldest, newest, or all (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all settings with optional filters. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Settings by Type - Auction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('All settings are of type auction', function () {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.length > 0) {",
+									"        response.data.forEach(setting => {",
+									"            pm.expect(setting.type).to.equal('auction');",
+									"        });",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/settings?type=auction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "auction",
+									"description": "Filter by type: auction"
+								}
+							]
+						},
+						"description": "Get all settings of type 'auction'. This is a public endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Settings - Sorted by Newest",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/settings?sorted_by=newest",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings"
+							],
+							"query": [
+								{
+									"key": "sorted_by",
+									"value": "newest",
+									"description": "Sort by: newest"
+								}
+							]
+						},
+						"description": "Get settings sorted by newest first (default)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Settings - Sorted by Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/settings?sorted_by=name",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings"
+							],
+							"query": [
+								{
+									"key": "sorted_by",
+									"value": "name",
+									"description": "Sort by: name"
+								}
+							]
+						},
+						"description": "Get settings sorted by name alphabetically."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Settings - Search by Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/settings?search=auction",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "auction",
+									"description": "Search by name, type, or value"
+								}
+							]
+						},
+						"description": "Search settings by name, type, or value."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Settings - With All Filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/settings?type=auction&search=percentage&sorted_by=name",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "auction",
+									"description": "Filter by type"
+								},
+								{
+									"key": "search",
+									"value": "percentage",
+									"description": "Search by name, type, or value"
+								},
+								{
+									"key": "sorted_by",
+									"value": "name",
+									"description": "Sort by: name"
+								}
+							]
+						},
+						"description": "Get settings with all filters applied (type, search, sorted_by)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Setting by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data object', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('object');",
+									"});",
+									"",
+									"pm.test('Data has required fields', function () {",
+									"    const response = pm.response.json();",
+									"    if (response.data) {",
+									"        pm.expect(response.data).to.have.property('id');",
+									"        pm.expect(response.data).to.have.property('type');",
+									"        pm.expect(response.data).to.have.property('name');",
+									"        pm.expect(response.data).to.have.property('value');",
+									"        pm.expect(response.data).to.have.property('created_at');",
+									"        pm.expect(response.data).to.have.property('updated_at');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/settings/{{setting_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings",
+								"{{setting_id}}"
+							]
+						},
+						"description": "Get a specific setting by ID. This is a public endpoint."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin Routes",
+			"item": [
+				{
+					"name": "Create Setting - Auction Type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data object', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('object');",
+									"});",
+									"",
+									"// Save created setting ID",
+									"const response = pm.response.json();",
+									"if (response.data && response.data.id) {",
+									"    pm.environment.set('setting_id', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"auction\",\n    \"name\": \"max_bid_amount\",\n    \"value\": \"1000000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/settings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings"
+							]
+						},
+						"description": "Create a new setting of type 'auction'. Requires admin authentication. All fields are optional: type, name, value."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Setting - System Type",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"System\",\n    \"name\": \"site_name\",\n    \"value\": \"منصة المزادات\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/settings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings"
+							]
+						},
+						"description": "Create a new setting of type 'System'. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Setting - Full Update",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has data object', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.data).to.be.an('object');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"auction\",\n    \"name\": \"max_bid_amount\",\n    \"value\": \"2000000\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/settings/{{setting_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings",
+								"{{setting_id}}"
+							]
+						},
+						"description": "Update an existing setting. Requires admin authentication. All fields are optional: type, name, value."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Setting - Change Value Only",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"value\": \"15\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/settings/{{setting_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings",
+								"{{setting_id}}"
+							]
+						},
+						"description": "Partially update a setting (only value field). Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Setting - Auction Percentage Alert",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"value\": \"12\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/settings/{{auction_percentage_alert_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings",
+								"{{auction_percentage_alert_id}}"
+							]
+						},
+						"description": "Update the auction_percentage_alert setting value. Requires admin authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Setting",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success true', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"",
+									"pm.test('Response has success message', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.message).to.include('deleted');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/settings/{{setting_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings",
+								"{{setting_id}}"
+							]
+						},
+						"description": "Delete a setting. Requires admin authentication."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Error Cases",
+			"item": [
+				{
+					"name": "Get Setting - Invalid ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Response has success false', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/settings/99999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings",
+								"99999"
+							]
+						},
+						"description": "Test error case: Setting not found"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Setting - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"auction\",\n    \"name\": \"test_setting\",\n    \"value\": \"test_value\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/settings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings"
+							]
+						},
+						"description": "Test error case: Unauthorized access (no token)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Setting - Invalid ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Response has success false', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"value\": \"test\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/settings/99999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings",
+								"99999"
+							]
+						},
+						"description": "Test error case: Setting not found"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Setting - Unauthorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 401', function () {",
+									"    pm.response.to.have.status(401);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/settings/{{setting_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"settings",
+								"{{setting_id}}"
+							]
+						},
+						"description": "Test error case: Unauthorized access (no token)"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "setting_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "auction_percentage_alert_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "type",
+			"value": "all",
+			"type": "string"
+		},
+		{
+			"key": "search",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "sorted_by",
+			"value": "all",
+			"type": "string"
+		},
+		{
+			"key": "national_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+

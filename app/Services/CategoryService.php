@@ -49,6 +49,8 @@ class CategoryService
                 'title' => $data['title'] ?? null,
                 'content' => $data['content'] ?? null,
                 'type' => $data['type'],
+                'minimum_bid_increment' => $data['minimum_bid_increment'] ?? null,
+                'maximum_bid_increment' => $data['maximum_bid_increment'] ?? null,
             ]);
 
 
@@ -76,6 +78,8 @@ class CategoryService
                 'title' => $data['title'] ?? $category->title,
                 'content' => $data['content'] ?? $category->content,
                 'type' => $data['type'] ?? $category->type,
+                'minimum_bid_increment' => $data['minimum_bid_increment'] ?? $category->minimum_bid_increment,
+                'maximum_bid_increment' => $data['maximum_bid_increment'] ?? $category->maximum_bid_increment,
             ]);
 
                 DB::commit();

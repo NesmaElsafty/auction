@@ -23,11 +23,12 @@ class DatabaseSeeder extends Seeder
             OptionSeeder::class,
             CitySeeder::class,
             AgencySeeder::class,
+            SettingSeeder::class,
             AuctionSeeder::class,
             ContactUsSeeder::class,
             TermSeeder::class,
             NotificationSeeder::class,
-            AlertSeeder::class
+            AlertSeeder::class,
         ]);
     }
 }

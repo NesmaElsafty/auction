@@ -22,7 +22,6 @@ class CategoryFactory extends Factory
             'العقارات',
             'السيارات',
             'المنزلية',
-            'الهدم'
         ];
 
         $arabicTitles = [
@@ -53,6 +52,8 @@ class CategoryFactory extends Factory
             'title' => fake()->unique()->randomElement($arabicTitles),
             'content' => fake()->unique()->randomElement($arabicContent),
             'type' => fake()->randomElement(['terms', 'contracts']),
+            'minimum_bid_increment' => fake()->randomFloat(2, 1, 10),
+            'maximum_bid_increment' => fake()->randomFloat(2, 11, 50),
         ];
     }
 }

@@ -15,6 +15,8 @@ use App\Http\Controllers\ContactUsController;
 use App\Http\Controllers\TermController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AlertController;
+use App\Http\Controllers\SettingController;
+use App\Http\Controllers\PaymentController;
 // Public routes
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
@@ -54,7 +56,6 @@ Route::get('contactUs', [ContactUsController::class, 'index']);
 Route::get('terms', [TermController::class, 'index']);
 Route::get('terms/{id}', [TermController::class, 'show']);
 
-
 // Protected routes
 Route::middleware(['auth:sanctum', 'all'])->group(function () {
     Route::post('logout', [AuthController::class, 'logout']);
@@ -72,6 +73,14 @@ Route::middleware(['auth:sanctum', 'all'])->group(function () {
     Route::delete('alerts/{id}', [AlertController::class, 'destroy']);
     Route::post('alertsBulkAction', [AlertController::class, 'bulkAction']);
     Route::post('alertToggleRead/{id}', [AlertController::class, 'toggleRead']);
+
+    // Auctions CRUD
+    Route::post('auctions', [AuctionController::class, 'store']);
+    Route::put('auctions/{id}', [AuctionController::class, 'update']);
+    Route::delete('auctions/{id}', [AuctionController::class, 'destroy']);
+    Route::post('auctionAddImage', [AuctionController::class, 'addImages']);
+    Route::delete('auctionRemoveImage', [AuctionController::class, 'removeImages']);
+
 });
 
 Route::middleware(['auth:sanctum', 'user'])->group(function () {
@@ -82,12 +91,6 @@ Route::middleware(['auth:sanctum', 'user'])->group(function () {
         Route::post('agencyAddFiles', [AgencyController::class, 'addFiles']);
         Route::delete('agencyRemoveFiles', [AgencyController::class, 'removeFiles']);
 
-    // Auctions CRUD
-        Route::post('auctions', [AuctionController::class, 'store']);
-        Route::put('auctions/{id}', [AuctionController::class, 'update']);
-        Route::delete('auctions/{id}', [AuctionController::class, 'destroy']);
-        Route::post('auctionAddImage', [AuctionController::class, 'addImages']);
-        Route::delete('auctionRemoveImage', [AuctionController::class, 'removeImages']);
 });
 
 
@@ -146,4 +149,17 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::put('notifications/{id}', [NotificationController::class, 'update']);
     Route::delete('notifications/{id}', [NotificationController::class, 'destroy']);
     Route::post('notificationAlerts/{id}', [NotificationController::class, 'notificationAlerts']);
+
+    // Admin routes for settings (store, update, destroy)
+    Route::get('settings', [SettingController::class, 'index']);
+    Route::post('settings', [SettingController::class, 'store']);
+    Route::get('settings/{name}', [SettingController::class, 'show']);
+
+    // Admin routes for payments
+    Route::post('confirmPayment', [PaymentController::class, 'confirmPayment']);
+
+    // Admin routes for auctions
+    Route::get('adminAuctions', [AuctionController::class, 'adminAuctions']);
+    Route::get('auctions/{id}', [AuctionController::class, 'show']);
+    Route::get('exportAuctions', [AuctionController::class, 'exportAuctions']);
 });

@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 use App\Models\ItemData;
 use App\Models\Auction;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
-
+use App\Models\Setting;
+use App\Models\Payment;
+use App\Models\Input;
 class AuctionController extends Controller
 {
     protected AuctionService $auctionService;
@@ -19,21 +21,28 @@ class AuctionController extends Controller
         $this->auctionService = $auctionService;
     }
 
-    public function index(Request $request)
+    public function adminAuctions(Request $request)
     {
         try {
-            $auctions = $this->auctionService->index($request->all())->paginate(10);
+            $data = array_merge($request->all(), ['post_type' => 'auction']);
+            $auctions = $this->auctionService->index($data)->paginate(10);
+            $stats = null;
+
+            if(auth()->user()->type == 'admin'){
+                $stats = $this->auctionService->stats();
+            }
             
             return response()->json([
                 'success' => true,
-                'message' => 'Auctions retrieved successfully',
+                'message' => 'Admin auctions retrieved successfully',
                 'data' => AuctionResource::collection($auctions),
                 'pagination' => PaginationHelper::paginate($auctions),
+                'stats' => $stats,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve auctions',
+                'message' => 'Failed to retrieve admin auctions',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -45,7 +54,7 @@ class AuctionController extends Controller
             $request->validate([
                 'category_id' => 'required|exists:categories,id',
                 'user_id' => 'required',
-                'post_type' => 'required|in:auction,purchase',
+                'post_type' => 'required|in:auction,purchase,demolition',
                 'user_type' => 'required|in:user,agency',
                 'name' => 'required|string|max:255',
                 'description' => 'nullable|string',
@@ -60,6 +69,11 @@ class AuctionController extends Controller
                 'awarding_period_days' => 'nullable|integer|min:1',
                 'is_active' => 'nullable|boolean',
                 'is_approved' => 'nullable|boolean',
+
+                'location' => 'required',
+                'lat' => 'required|numeric',
+                'long' => 'required|numeric',
+                
                 'images' => 'required|array',
                 'images.*' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
                 'items' => 'required|array',
@@ -69,28 +83,32 @@ class AuctionController extends Controller
 
                 'purchase_min_amount' => 'required:if:post_type,purchase|numeric|min:0',
                 'purchase_amount' => 'required:if:post_type,purchase|numeric|min:0',
-
             ]);
 
             $user = auth()->user();
             $auction = $this->auctionService->store($request->all(), $user);
 
-            // upload images
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
                     $auction->addMedia($image)->toMediaCollection('images');
                 }
             }
 
-            // upload items
             if ($request->items && count($request->items) > 0) {
                 foreach ($request->items as $item) {
-                    if($item->hasfile('document')){
-                        $item->addMedia($item->file('document'))->toMediaCollection('documents');
+                    $input = Input::find($item['input_id']);
+                    if($input->type == 'file' && $request->hasFile($item['value'])){
+                        $media = $auction->addMedia($request->file($item['value']))->toMediaCollection('documents');
+                        $itemData = ItemData::create([
+                            'auction_id' => $auction->id,
+                            'input_id' => $input->id,
+                            'label' => $item['label'],
+                            'value' => $media->getUrl(),
+                        ]);
                     }else{
                         $itemData = ItemData::create([
                             'auction_id' => $auction->id,
-                            'input_id' => $item['input_id'],
+                            'input_id' => $input->id,
                             'label' => $item['label'],
                             'value' => $item['value'],
                         ]);
@@ -98,10 +116,24 @@ class AuctionController extends Controller
                 }
             }
 
+            if($auction){
+                $setting = Setting::where('type', 'finance')->get();
+                foreach($setting as $setting){
+                    $amount = $setting->value;
+                    $payment = Payment::create([
+                        'auction_id' => $auction->id,
+                        'setting_id' => $setting->id,
+                        'amount' => $amount,
+                        'is_paid' => false,
+                        'payment_method' => 'pending',
+                    ]);
+                }
+            }
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Auction created successfully',
-                'data' => new AuctionResource($auction),
+                'data' => new AuctionResource($auction->load('itemData')),
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -120,7 +152,7 @@ class AuctionController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Auction retrieved successfully',
-                'data' => new AuctionResource($auction),
+                'data' => new AuctionResource($auction->load('payments')),
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -293,6 +325,26 @@ class AuctionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve user auctions',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    // export auctions
+    public function exportAuctions(Request $request)
+    {
+        try {
+            $data = $request->all();
+            $media = $this->auctionService->exportAuctions($data);
+            return response()->json([
+                'success' => true,
+                'message' => 'Auctions exported successfully',
+                'data' => $media->getFullUrl(),
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to export auctions',
                 'error' => $e->getMessage(),
             ], 500);
         }

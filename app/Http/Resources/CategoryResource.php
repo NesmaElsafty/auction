@@ -25,6 +25,8 @@ class CategoryResource extends JsonResource
             'title' => $this->title,
             'content' => $this->content,
             'type' => $this->type,
+            'minimum_bid_increment' => $this->minimum_bid_increment,
+            'maximum_bid_increment' => $this->maximum_bid_increment,
             'image' => $image,
             'screens' => ScreenResource::collection($this->screens),
             'created_at' => $this->created_at,

@@ -16,13 +16,17 @@ class ItemDataResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'auction_id' => $this->auction_id,
-            'input_id' => $this->input_id,
-            'input' => new InputResource($this->whenLoaded('input')),
+            'input' => [
+                'id' => $this->input->id,
+                'name' => $this->input->name,
+                'type' => $this->input->type,
+            ],
+            'file' => [
+                'id' => $this->file?->id,
+                'url' => str_replace('public/', '', $this->file?->getUrl()),
+            ],
             'label' => $this->label,
             'value' => $this->value,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ];
     }
 }

@@ -8,14 +8,12 @@ use App\Models\ItemData;
 use App\Models\Input;
 use App\Models\Option;
 use App\Models\Screen;
-use App\Models\User;
-use App\Models\Agency;
 use App\Models\Setting;
 use App\Models\Payment;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class AuctionSeeder extends Seeder
+class ItemDataSeeder extends Seeder
 {
     use WithoutModelEvents;
 
@@ -24,70 +22,62 @@ class AuctionSeeder extends Seeder
      */
     public function run(): void
     {
-        $categories = Category::with(['screens.inputs.options'])->get();
+        // Get all auctions with their categories
+        $auctions = Auction::with('category')->get();
         
-        if ($categories->isEmpty()) {
-            $this->command->warn('No categories found. Please run CategorySeeder first.');
+        if ($auctions->isEmpty()) {
+            $this->command->warn('No auctions found. Please run AuctionSeeder first.');
             return;
         }
 
-        $users = User::where('type', 'user')->get();
-        $agencies = Agency::with('user')->get();
+        $itemDataCount = 0;
 
-        if ($users->isEmpty() && $agencies->isEmpty()) {
-            $this->command->warn('No users or agencies found. Please run UserSeeder and AgencySeeder first.');
-            return;
-        }
-
-        // Create auctions for each category
-        // Generate random created_at dates between today and 90 days ago
-        $today = now();
-        $ninetyDaysAgo = now()->subDays(90);
-        
-        foreach ($categories as $category) {
-            // Create more auctions per category (10-20 auctions)
-            $auctionCount = fake()->numberBetween(10, 20);
-            
-            for ($i = 0; $i < $auctionCount; $i++) {
-                // Generate random created_at between today and 90 days ago
-                $createdAt = fake()->dateTimeBetween($ninetyDaysAgo, $today);
-                
-                // Randomly choose between user or agency
-                $useAgency = !$agencies->isEmpty() && fake()->boolean(40); // 40% chance to use agency
-                
-                if ($useAgency && !$agencies->isEmpty()) {
-                    $agency = $agencies->random();
-                    $auction = Auction::factory()
-                        ->forCategory($category)
-                        ->forAgency($agency)
-                        ->create([
-                            'created_at' => $createdAt,
-                            'updated_at' => $createdAt,
-                        ]);
-                } else {
-                    $user = $users->random();
-                    $auction = Auction::factory()
-                        ->forCategory($category)
-                        ->forUser($user)
-                        ->create([
-                            'created_at' => $createdAt,
-                            'updated_at' => $createdAt,
-                        ]);
-                }
-
-                // Create itemData for all inputs in all screens of this category
-                $this->createItemDataForAuction($auction, $category);
-                
-                // Create payments based on finance settings
-                $this->createPaymentsForAuction($auction);
+        // Process each auction
+        foreach ($auctions as $auction) {
+            // Skip if auction doesn't have a category
+            if (!$auction->category) {
+                $this->command->warn("Auction #{$auction->id} doesn't have a category. Skipping...");
+                continue;
             }
+
+            // Check if ItemData already exists for this auction
+            $existingItemData = ItemData::where('auction_id', $auction->id)->count();
+            if ($existingItemData > 0) {
+                $this->command->info("ItemData already exists for Auction #{$auction->id}. Skipping...");
+                continue;
+            }
+
+            // Create itemData for all inputs in all screens of this category
+            $created = $this->createItemDataForAuction($auction, $auction->category);
+            $itemDataCount += $created;
+            
+            // Create payments if they don't exist for this auction
+            $this->createPaymentsForAuction($auction);
         }
+
+        $this->command->info("ItemData seeder completed! Created {$itemDataCount} ItemData records.");
     }
 
+    /**
+     * Create payments for auction based on finance settings
+     * 
+     * @param Auction $auction
+     */
     private function createPaymentsForAuction(Auction $auction): void
     {
+        // Check if payments already exist for this auction
+        $existingPayments = Payment::where('auction_id', $auction->id)->count();
+        if ($existingPayments > 0) {
+            return; // Payments already exist, skip
+        }
+        
         $settings = Setting::where('type', 'finance')->get();
-
+        
+        if ($settings->isEmpty()) {
+            $this->command->warn("No finance settings found. Skipping payments for Auction #{$auction->id}");
+            return;
+        }
+        
         foreach ($settings as $setting) {
             $amount = $setting->value;
             Payment::create([
@@ -100,16 +90,35 @@ class AuctionSeeder extends Seeder
         }
     }
 
-    private function createItemDataForAuction(Auction $auction, Category $category): void
+    /**
+     * Create itemData for all inputs in all screens of the category
+     * 
+     * @param Auction $auction
+     * @param Category $category
+     * @return int Number of ItemData records created
+     */
+    private function createItemDataForAuction(Auction $auction, Category $category): int
     {
-        // Get all screens for this category
+        // Get all screens for this category with their inputs
         $screens = Screen::where('category_id', $category->id)
             ->with('inputs.options')
             ->get();
 
+        if ($screens->isEmpty()) {
+            $this->command->warn("Category '{$category->name}' (ID: {$category->id}) doesn't have any screens.");
+            return 0;
+        }
+
+        $createdCount = 0;
+
         foreach ($screens as $screen) {
             // Get all inputs for this screen
             $inputs = Input::where('screen_id', $screen->id)->get();
+
+            if ($inputs->isEmpty()) {
+                $this->command->warn("Screen '{$screen->title}' (ID: {$screen->id}) doesn't have any inputs.");
+                continue;
+            }
 
             foreach ($inputs as $input) {
                 // Generate value based on input type
@@ -122,10 +131,22 @@ class AuctionSeeder extends Seeder
                     'label' => $input->label ?? $input->name,
                     'value' => $value,
                 ]);
+
+                $createdCount++;
             }
         }
+
+        $this->command->info("Created {$createdCount} ItemData records for Auction #{$auction->id} (Category: {$category->name})");
+        
+        return $createdCount;
     }
 
+    /**
+     * Generate appropriate value based on input type and label (Arabic)
+     * 
+     * @param Input $input
+     * @return string|null
+     */
     private function generateValueForInput(Input $input): ?string
     {
         $label = $input->label ?? $input->name;
@@ -154,6 +175,14 @@ class AuctionSeeder extends Seeder
         };
     }
     
+    /**
+     * Generate Arabic value based on input label
+     * 
+     * @param string $type
+     * @param string $label
+     * @param Input $input
+     * @return string|null
+     */
     private function generateArabicValueForLabel(string $type, string $label, Input $input): ?string
     {
         // Handle select/radio inputs with options
@@ -274,6 +303,12 @@ class AuctionSeeder extends Seeder
         return null;
     }
 
+    /**
+     * Get value from options if available, otherwise generate random value
+     * 
+     * @param Input $input
+     * @return string
+     */
     private function getOptionValue(Input $input): string
     {
         $options = Option::where('input_id', $input->id)->get();
@@ -287,7 +322,12 @@ class AuctionSeeder extends Seeder
         // If no options, return a default Arabic value
         return $this->generateArabicText();
     }
-
+    
+    /**
+     * Generate Arabic text
+     * 
+     * @return string
+     */
     private function generateArabicText(): string
     {
         $arabicTexts = [
@@ -302,7 +342,12 @@ class AuctionSeeder extends Seeder
         ];
         return fake()->randomElement($arabicTexts);
     }
-
+    
+    /**
+     * Generate Arabic paragraph
+     * 
+     * @return string
+     */
     private function generateArabicParagraph(): string
     {
         $arabicParagraphs = [

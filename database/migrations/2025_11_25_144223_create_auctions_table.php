@@ -21,7 +21,7 @@ return new class extends Migration
             // user_id + user_type
             $table->morphs('user');
 
-            $table->enum('post_type', ['Auction', 'Purchase'])->nullable();
+            $table->enum('post_type', ['auction', 'purchase', 'demolition'])->nullable();
 
             $table->string('name');
             $table->text('description')->nullable();
@@ -51,8 +51,8 @@ return new class extends Migration
 
             // location
             $table->text('location')->nullable();
-            $table->decimal('latitude', 10, 8)->nullable();
-            $table->decimal('longitude', 11, 8)->nullable();
+            $table->decimal('lat', 10, 8)->nullable();
+            $table->decimal('long', 11, 8)->nullable();
             $table->timestamp('viewing_date')->nullable();
 
             // status

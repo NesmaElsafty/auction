@@ -22,6 +22,9 @@ return new class extends Migration
             $table->text('content')->nullable();
             $table->enum('type', ['terms', 'contracts']);
 
+            $table->decimal('minimum_bid_increment', 5, 2)->nullable();
+            $table->decimal('maximum_bid_increment', 5, 2)->nullable();
+
             
             $table->timestamps();
         });

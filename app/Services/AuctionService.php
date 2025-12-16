@@ -6,35 +6,73 @@ use App\Models\Auction;
 use App\Models\Agency;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\ExportHelper;
 
 class AuctionService
 {
     public function index($data)
     {
         $query = Auction::with(['category', 'user']);
+        $query->where('post_type', $data['post_type']);
 
         // Apply search filter
         if (isset($data['search']) && $data['search']) {
             $search = $data['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                })
+                ->orWhereHas('category', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                });
             });
         }
 
         // Filter by category
-        if (isset($data['category_id']) && $data['category_id']) {
+        if (isset($data['category_id']) && $data['category_id'] !== 'all') {
             $query->where('category_id', $data['category_id']);
         }
 
         // Filter by status
-        if (isset($data['status']) && $data['status']) {
-            $query->where('status', $data['status']);
+        if (isset($data['status']) && $data['status'] !== 'all') {
+            switch ($data['status']) {
+                case 'pending':
+                    // where now > start_date
+                    $query->where('start_date', '>', now());
+                    break;
+                case 'current':
+                    // where now > start_date and now < end_date
+                    $query->where('start_date', '<', now())->where('end_date', '>', now());
+                    break;
+                case 'completed':
+                    // where end_date < now
+                    $query->where('end_date', '<', now());
+                    break;
+            }
         }
 
         // Filter by type
-        if (isset($data['type']) && $data['type']) {
+        if (isset($data['type']) && $data['type'] !== 'all') {
             $query->where('type', $data['type']);
+        }
+
+        // sorted by
+        if (isset($data['sorted_by']) && $data['sorted_by'] !== 'all') {
+            switch ($data['sorted_by']) {
+                case 'name':
+                    $query->orderBy('name', 'asc');
+                    break;
+                case 'oldest':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+                case 'newest':
+                    $query->orderBy('created_at', 'desc');
+                    break;
+            }
+        } else {
+            $query->orderBy('created_at', 'desc');
         }
 
         // Filter by user (for user's own auctions)
@@ -74,8 +112,6 @@ class AuctionService
 
     public function store($data, User $user)
     {
-        DB::beginTransaction();
-        try {
             // Determine user_id and user_type
             $userId = $user->id;
             $userType = User::class;
@@ -85,10 +121,6 @@ class AuctionService
                 $agency = Agency::where('id', $data['agency_id'])
                     ->where('user_id', $user->id)
                     ->first();
-
-                if (!$agency) {
-                    throw new \Exception('Agency not found or does not belong to you');
-                }
 
                 $userId = $agency->id;
                 $userType = Agency::class;
@@ -113,14 +145,13 @@ class AuctionService
                 'status' => $data['status'] ?? 'pending',
                 'is_active' => $data['is_active'] ?? true,
                 'is_approved' => $data['is_approved'] ?? false,
+                'location' => $data['location'] ?? null,
+                'lat' => $data['lat'] ?? null,
+                'long' => $data['long'] ?? null,
+                'viewing_date' => $data['viewing_date'] ?? null,
             ]);
 
-            DB::commit();
-            return $auction->load(['category', 'user']);
-        } catch (\Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        return $auction->load(['category', 'user']);
     }
 
     public function update($id, $data, User $user)
@@ -185,9 +216,6 @@ class AuctionService
         }
     }
 
-    /**
-     * Verify that the user owns the auction (either directly or through an agency)
-     */
     public function verifyOwnership($auction, $user)
     {
         $isOwner = false;
@@ -209,6 +237,123 @@ class AuctionService
             throw new \Exception('You do not have permission to access this auction');
         }
         return $isOwner;
+    }
+
+    public function stats(): array
+    {
+        $now = now();
+        $thirtyDaysAgo = now()->subDays(30);
+
+        // Total Auctions (post_type = 'auction')
+        // Current: all auctions until now
+        $totalAuctionsNow = Auction::where('post_type', 'auction')->count();
+        // Before: all auctions until 30 days ago
+        $totalAuctionsBefore = Auction::where('post_type', 'auction')
+            ->where('created_at', '<=', $thirtyDaysAgo)
+            ->count();
+        $totalAuctionsPercentage = $this->calculatePercentage($totalAuctionsBefore, $totalAuctionsNow);
+
+        // Total Electronic Auctions (post_type = 'auction' AND type = 'online')
+        $totalElectronicNow = Auction::where('post_type', 'auction')
+            ->where('type', 'online')
+            ->count();
+        $totalElectronicBefore = Auction::where('post_type', 'auction')
+            ->where('type', 'online')
+            ->where('created_at', '<=', $thirtyDaysAgo)
+            ->count();
+        $totalElectronicPercentage = $this->calculatePercentage($totalElectronicBefore, $totalElectronicNow);
+
+        // Total Hybrid Auctions (post_type = 'auction' AND type = 'both')
+        $totalHybridNow = Auction::where('post_type', 'auction')
+            ->where('type', 'both')
+            ->count();
+        $totalHybridBefore = Auction::where('post_type', 'auction')
+            ->where('type', 'both')
+            ->where('created_at', '<=', $thirtyDaysAgo)
+            ->count();
+        $totalHybridPercentage = $this->calculatePercentage($totalHybridBefore, $totalHybridNow);
+
+        return [
+            'total_auctions' => [
+                'title' => 'إجمالي المزادات',
+                'total' => $totalAuctionsNow,
+                'percentage' => abs($totalAuctionsPercentage),
+                'direction' => $this->getDirection($totalAuctionsPercentage),
+            ],
+            'total_electronic_auctions' => [
+                'title' => 'إجمالي المزادات الإلكترونية',
+                'total' => $totalElectronicNow,
+                'percentage' => abs($totalElectronicPercentage),
+                'direction' => $this->getDirection($totalElectronicPercentage),
+            ],
+            'total_hybrid_auctions' => [
+                'title' => 'إجمالي مزادات الهجين',
+                'total' => $totalHybridNow,
+                'percentage' => abs($totalHybridPercentage),
+                'direction' => $this->getDirection($totalHybridPercentage),
+            ],
+        ];
+    }
+
+    private function calculatePercentage(float $oldValue, float $newValue): float
+    {
+        if ($oldValue == 0) {
+            return $newValue > 0 ? 100 : 0;
+        }
+
+        $change = $newValue - $oldValue;
+        $percentage = ($change / $oldValue) * 100;
+
+        return round($percentage, 2);
+    }
+
+    private function getDirection(float $percentage): string
+    {
+        if ($percentage > 0) {
+            return 'up';
+        } elseif ($percentage < 0) {
+            return 'down';
+        } else {
+            return 'neutral';
+        }
+    }
+
+    // export auctions
+    public function exportAuctions($data)
+    {
+        // export filtered auctions
+        $data = array_merge($data, ['post_type' => 'auction']);
+        $auctions = $this->index($data)->get();
+        $csvData = [];
+        foreach($auctions as $auction) {
+            $auctionStatus = null;
+            if($auction->start_date > now()) {
+                $auctionStatus = 'Pending';
+            } elseif($auction->start_date < now() && $auction->end_date > now()) {
+                $auctionStatus = 'Current';
+            } elseif($auction->end_date < now()) {
+                $auctionStatus = 'Completed';
+            }
+            
+            $csvData[] = [
+                'اسم الاعلان' => $auction->name,
+                'فئة الاعلان' => $auction->category->name,
+                'وصف الاعلان' => $auction->description,
+                'تاريخ البدء' => $auction->start_date,
+                'تاريخ الانتهاء' => $auction->end_date,
+                'الحاله' => $auctionStatus,
+                'اسم المعلن' => $auction->user->name,
+                'نوع المعلن' => $auction->user_type == User::class ? 'مستخدم' : 'وكالة',
+                'نوع الاعلان' => $auction->type == 'online' ? 'إلكتروني' : 'هجين',
+                'سعر العربون' => $auction->deposit_price,
+                'هل هو اعلان علني' => $auction->is_infaz == 1 ? 'نعم' : 'لا',
+                'سعر الانتهاء' => $auction->end_price == null ? $auction->start_price : $auction->end_price,
+                'تاريخ الانشاء' => $auction->created_at,
+                
+            ];
+        }
+        $media = ExportHelper::exportToMedia($csvData, auth()->user(), 'exports', 'auctions.csv');
+        return $media ?? null;
     }
 }
 
